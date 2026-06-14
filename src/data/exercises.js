@@ -23,13 +23,14 @@ export const exercises = [
   .groupBy({count:=count()})`,
     },
     {
-        slug: 'count-by-country',
-        title: 'Count by country',
+        slug: 'retrieve-basel-sequences',
+        title: 'Retrieve Basel sequences',
         question:
-            'Count the sequences per country and return the 20 countries with the most sequences, most frequent first.',
+            'Retrieve the 20 most recent sequences from Basel-Stadt, Switzerland, showing the GenBank accession, date, unaligned nucleotide sequence, aligned nucleotide sequence and S amino acid sequence.',
         answer: `default
-  .groupBy({count:=count()}, {country})
-  .orderBy({count.desc()})
+  .filter(country = 'Switzerland' && division = 'Basel-Stadt')
+  .orderBy({date.desc()})
+  .project({genbankAccession, date, unaligned_main, main, S})
   .limit(20)`,
     },
     {
