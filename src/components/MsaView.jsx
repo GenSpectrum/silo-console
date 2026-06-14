@@ -1,13 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import '@nightingale-elements/nightingale-manager';
-import '@nightingale-elements/nightingale-navigation';
-import '@nightingale-elements/nightingale-msa';
+import NightingaleManager from '@nightingale-elements/nightingale-manager';
+import NightingaleNavigation from '@nightingale-elements/nightingale-navigation';
+import NightingaleMsa from '@nightingale-elements/nightingale-msa';
 import { sequenceUnit } from '../lib/sequences.js';
 
 const LABEL_WIDTH = 56;
 const TILE_HEIGHT = 20;
 const MAX_ROWS = 200;
 const INITIAL_COLUMNS = 60;
+const NIGHTINGALE_ELEMENTS = [NightingaleManager, NightingaleNavigation, NightingaleMsa];
 
 // Wraps EBI's <nightingale-msa> web component: a canvas multiple-sequence-alignment viewer with a
 // zoomable navigation ruler. Rows are labelled by their result-table row number. Data is pushed onto
@@ -17,6 +18,7 @@ export default function MsaView({ entries }) {
     const containerRef = useRef(null);
     const msaRef = useRef(null);
     const [width, setWidth] = useState(0);
+    const elementsRegistered = NIGHTINGALE_ELEMENTS.every((elementClass) => typeof elementClass === 'function');
 
     const shown = entries.slice(0, MAX_ROWS);
     const length = shown.reduce((max, entry) => Math.max(max, entry.sequence.length), 0);
@@ -51,7 +53,7 @@ export default function MsaView({ entries }) {
 
     return (
         <div className='msa-container' ref={containerRef}>
-            {width > 0 && (
+            {width > 0 && elementsRegistered && (
                 <nightingale-manager>
                     <nightingale-navigation
                         height='40'
