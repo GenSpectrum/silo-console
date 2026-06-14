@@ -6,8 +6,9 @@ export default function ExercisesListPage() {
         <div className='page'>
             <h2>Exercises</h2>
             <p className='hint'>
-                Practice writing SILO queries. Each exercise gives you a question — write the query, run it, and reveal
-                the reference answer when you want to compare. Answers are not checked automatically.
+                Practice writing SILO queries. Each exercise gives you a question — write the query and run it: the
+                answer will be automatically compared against the reference answer. The exercises are designed to be run
+                against the SARS-CoV-2 dataset from INSDC, hosted by CoV-Spectrum.
             </p>
             <ul className='exercise-list'>
                 {exercises.map((ex, i) => (

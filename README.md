@@ -55,7 +55,7 @@ npm run build        # outputs static files to dist/
 npm run serve        # preview the build on http://localhost:5001
 ```
 
-`npm run build` runs `vite build` and then a post-build step
+`npm run build` runs the TypeScript checker, `vite build`, and then a post-build step
 (`scripts/postbuild.mjs`) that copies `dist/index.html` into a real folder for
 every route (`dist/console/index.html`, `dist/exercises/<slug>/index.html`, …).
 This makes deep links and refreshes work on static hosts without any SPA-fallback

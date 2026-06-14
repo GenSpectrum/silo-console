@@ -24,16 +24,16 @@ preview port is 5001.
 - `scripts/postbuild.mjs` copies `dist/index.html` into real route directories so static hosts can
   serve deep links without SPA fallback rules. When adding a top-level route, update `src/main.tsx`,
   `src/components/Sidebar.tsx`, and the `routes` array in `scripts/postbuild.mjs`.
-- Exercise routes are generated from `src/data/exercises.js`; changing an exercise slug changes the
+- Exercise routes are generated from `src/data/exercises.ts`; changing an exercise slug changes the
   generated static route.
-- `VITE_BASE` controls sub-path deployments, and `src/config.js` derives the router basename from
+- `VITE_BASE` controls sub-path deployments, and `src/config.ts` derives the router basename from
   Vite's `BASE_URL`.
 - The default SILO server is `VITE_SILO_DEFAULT_SERVER`, falling back to
   `https://gs-staging-1.int.genspectrum.org/open/v2/silo`.
 
 ## SILO Query Behavior
 
-- `src/lib/runQuery.js` sends plain-text SaneQL to `POST <server>/query` with
+- `src/lib/runQuery.ts` sends plain-text SaneQL to `POST <server>/query` with
   `Accept: application/x-ndjson`.
 - `runBounded()` appends `.limit(100)` unless the query already has a limit, and retries without the
   added limit only for SILO's unordered-output limit error.
@@ -45,7 +45,7 @@ preview port is 5001.
 
 ## Exercises
 
-- Exercises are `{ slug, title, question, answer }` objects in `src/data/exercises.js`.
+- Exercises are `{ slug, title, question, answer }` objects in `src/data/exercises.ts`.
 - The answer checker compares user rows to reference rows order-independently as a multiset.
 - Reference answers should be bounded, deterministic when possible, non-empty, and small enough for
   browser use. Validate changed answers against the default staging server.
@@ -54,7 +54,7 @@ preview port is 5001.
 
 ## Sequence And Alignment UI
 
-- Sequence detection is heuristic in `src/lib/sequences.js`: uppercase biological symbols plus
+- Sequence detection is heuristic in `src/lib/sequences.ts`: uppercase biological symbols plus
   gap/stop characters, with a minimum length.
 - Aligned sequence columns offer the table-header `align` action only when all non-null values share
   one length.
