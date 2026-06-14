@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifyColumns } from './sequences.js';
+import { classifyColumns } from './sequences';
 
 const seqA = 'A'.repeat(60);
 const seqB = 'C'.repeat(60);

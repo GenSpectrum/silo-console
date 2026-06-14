@@ -1,11 +1,17 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { DEFAULT_SERVER } from '../config.js';
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { DEFAULT_SERVER } from '../config';
 
 const STORAGE_KEY = 'silo-console-server';
 
-const ServerContext = createContext(null);
+type ServerContextValue = {
+    server: string;
+    setServer: (value: string) => void;
+    getBase: () => string;
+};
 
-export function ServerProvider({ children }) {
+const ServerContext = createContext<ServerContextValue | null>(null);
+
+export function ServerProvider({ children }: { children: ReactNode }) {
     const [server, setServerState] = useState(() => {
         if (typeof localStorage !== 'undefined') {
             const stored = localStorage.getItem(STORAGE_KEY);
@@ -19,7 +25,7 @@ export function ServerProvider({ children }) {
         localStorage.setItem(STORAGE_KEY, server);
     }, [server]);
 
-    const setServer = useCallback((value) => setServerState(value), []);
+    const setServer = useCallback((value: string) => setServerState(value), []);
 
     // Base URL with trailing slashes trimmed (matches the old console behaviour).
     const getBase = useCallback(() => (server || '').trim().replace(/\/+$/, ''), [server]);

@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import NightingaleManager from '@nightingale-elements/nightingale-manager';
 import NightingaleNavigation from '@nightingale-elements/nightingale-navigation';
 import NightingaleMsa from '@nightingale-elements/nightingale-msa';
-import { sequenceUnit } from '../lib/sequences.js';
+import { sequenceUnit } from '../lib/sequences';
+import type { SequenceEntry } from '../lib/types';
 
 const LABEL_WIDTH = 56;
 const TILE_HEIGHT = 20;
@@ -14,9 +15,14 @@ const NIGHTINGALE_ELEMENTS = [NightingaleManager, NightingaleNavigation, Nightin
 // zoomable navigation ruler. Rows are labelled by their result-table row number. Data is pushed onto
 // the element via a ref (web components take complex values as properties), and width tracks the
 // container.
-export default function MsaView({ entries }) {
-    const containerRef = useRef(null);
-    const msaRef = useRef(null);
+type NightingaleMsaElement = HTMLElement & {
+    updateComplete?: Promise<unknown>;
+    data?: { name: string; sequence: string }[];
+};
+
+export default function MsaView({ entries }: { entries: SequenceEntry[] }) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const msaRef = useRef<NightingaleMsaElement | null>(null);
     const [width, setWidth] = useState(0);
     const elementsRegistered = NIGHTINGALE_ELEMENTS.every((elementClass) => typeof elementClass === 'function');
 

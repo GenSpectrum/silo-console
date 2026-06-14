@@ -13,7 +13,14 @@
 // users must write their own `.limit(20)` rather than rely on the `.limit(100)`
 // the runner appends automatically (which would otherwise produce 100 rows and a
 // "Wrong!" verdict).
-export const exercises = [
+export type Exercise = {
+    slug: string;
+    title: string;
+    question: string;
+    answer: string;
+};
+
+export const exercises: Exercise[] = [
     {
         slug: 'count-switzerland',
         title: 'Count sequences from Switzerland',
@@ -151,6 +158,6 @@ export const exercises = [
     },
 ];
 
-export function getExercise(slug) {
+export function getExercise(slug: string | undefined) {
     return exercises.find((e) => e.slug === slug);
 }

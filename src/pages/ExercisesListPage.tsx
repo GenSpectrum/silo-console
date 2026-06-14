@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { exercises } from '../data/exercises.js';
+import { exercises } from '../data/exercises';
 
 export default function ExercisesListPage() {
     return (

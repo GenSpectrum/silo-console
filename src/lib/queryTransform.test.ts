@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isOrderingError, withLimit } from './queryTransform.js';
+import { isOrderingError, withLimit } from './queryTransform';
 
 describe('withLimit', () => {
     it('appends .limit(100) on a new line', () => {

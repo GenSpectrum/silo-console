@@ -1,9 +1,14 @@
 import { NavLink } from 'react-router-dom';
-import { exercises } from '../data/exercises.js';
+import { exercises } from '../data/exercises';
 
 // On small screens this is the slide-in menu toggled by the header hamburger; `open` controls the
 // slide and `onNavigate` closes it after a link is followed.
-export default function Sidebar({ open = false, onNavigate }) {
+type SidebarProps = {
+    open?: boolean;
+    onNavigate: () => void;
+};
+
+export default function Sidebar({ open = false, onNavigate }: SidebarProps) {
     return (
         <nav className={open ? 'sidebar open' : 'sidebar'}>
             <h2>Query</h2>

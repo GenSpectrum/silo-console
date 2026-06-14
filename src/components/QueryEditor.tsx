@@ -2,8 +2,20 @@ import { useEffect, useMemo, useRef } from 'react';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { setDiagnostics } from '@codemirror/lint';
 import { toggleLineComment } from '@codemirror/commands';
-import { saneql } from '../lib/saneql.js';
-import { diagnosticFor } from '../lib/diagnostic.js';
+import type { EditorView } from '@codemirror/view';
+import { saneql } from '../lib/saneql';
+import { diagnosticFor } from '../lib/diagnostic';
+import type { ErrorPosition } from '../lib/types';
+
+type QueryEditorProps = {
+    value: string;
+    onChange: (value: string) => void;
+    onRun: () => void;
+    status?: 'correct' | 'wrong' | 'unknown';
+    errorPosition?: ErrorPosition;
+    errorMessage?: string;
+    minHeight?: string;
+};
 
 // CodeMirror editor for SaneQL. Ctrl/Cmd+Enter runs the query, Ctrl/Cmd+/ toggles comments, and an
 // `errorPosition` highlights the offending character with `errorMessage` on hover.
@@ -15,8 +27,8 @@ export default function QueryEditor({
     errorPosition,
     errorMessage,
     minHeight = '160px',
-}) {
-    const viewRef = useRef(null);
+}: QueryEditorProps) {
+    const viewRef = useRef<EditorView | null>(null);
 
     const extensions = useMemo(
         () => [

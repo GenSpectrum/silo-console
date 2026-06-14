@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseErrorPosition } from './parseError.js';
+import { parseErrorPosition } from './parseError';
 
 describe('parseErrorPosition', () => {
     it('extracts a 1-based line and column', () => {

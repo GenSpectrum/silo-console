@@ -6,11 +6,12 @@
     "description": "Web interface for querying and learning SILO",
     "scripts": {
         "dev": "vite",
-        "build": "vite build && node scripts/postbuild.mjs",
+        "build": "tsc --noEmit && vite build && node scripts/postbuild.mjs",
         "serve": "vite preview",
         "test": "vitest run",
-        "format": "prettier --write \"./**/*.{js,jsx,json,css,md,mjs}\"",
-        "check-format": "prettier --check \"./**/*.{js,jsx,json,css,md,mjs}\""
+        "typecheck": "tsc --noEmit",
+        "format": "prettier --write \"./**/*.{js,jsx,ts,tsx,json,css,md,mjs}\"",
+        "check-format": "prettier --check \"./**/*.{js,jsx,ts,tsx,json,css,md,mjs}\""
     },
     "dependencies": {
         "@codemirror/commands": "^6.10.3",
@@ -27,8 +28,13 @@
         "react-router-dom": "^6.26.0"
     },
     "devDependencies": {
+        "@types/canvas-confetti": "^1.9.0",
+        "@types/node": "^25.9.3",
+        "@types/react": "^18.3.31",
+        "@types/react-dom": "^18.3.7",
         "@vitejs/plugin-react": "^4.3.1",
         "prettier": "^3.8.3",
+        "typescript": "^6.0.3",
         "vite": "^5.4.0",
         "vitest": "^2.1.0"
     }

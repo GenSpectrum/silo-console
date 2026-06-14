@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { baseColorClass, sequenceUnit } from '../lib/sequences.js';
-import MsaView from './MsaView.jsx';
+import { baseColorClass, sequenceUnit } from '../lib/sequences';
+import MsaView from './MsaView';
+import type { SequenceViewerState } from '../lib/types';
 
 const MAX_COLOR_CELLS = 20000;
 const LINE_WIDTH = 60;
@@ -10,9 +11,9 @@ const BASES = ['A', 'C', 'G', 'T', 'N', '-'];
 
 // Renders a sequence into React nodes, grouping runs of the same base color into single spans so
 // long sequences stay light on the DOM. Returns the plain string when coloring is off.
-function renderColored(sequence, colorize) {
+function renderColored(sequence: string, colorize: boolean): ReactNode {
     if (!colorize) return sequence;
-    const nodes = [];
+    const nodes: ReactNode[] = [];
     let i = 0;
     while (i < sequence.length) {
         const cls = baseColorClass(sequence[i]);
@@ -47,12 +48,12 @@ function BaseLegend() {
 
 // A single sequence wrapped into fixed-width lines (groups of 10), each labeled with its 1-based
 // start position — a GenBank-style layout that reads top-to-bottom with no horizontal scrolling.
-function WrappedSequence({ sequence, colorize }) {
+function WrappedSequence({ sequence, colorize }: { sequence: string; colorize: boolean }) {
     const posWidth = String(sequence.length).length;
     const lines = [];
     for (let start = 0; start < sequence.length; start += LINE_WIDTH) {
         const text = sequence.slice(start, start + LINE_WIDTH);
-        const blocks = [];
+        const blocks: ReactNode[] = [];
         for (let i = 0; i < text.length; i += GROUP) {
             if (i > 0) blocks.push(' ');
             blocks.push(<span key={i}>{renderColored(text.slice(i, i + GROUP), colorize)}</span>);
@@ -71,11 +72,17 @@ function WrappedSequence({ sequence, colorize }) {
 
 // Modal overlay showing one sequence (wrapped, GenBank-style) or an aligned column across rows
 // (an EBI Nightingale MSA viewer). Pass null to close.
-export default function SequenceViewer({ viewer, onClose }) {
+export default function SequenceViewer({
+    viewer,
+    onClose,
+}: {
+    viewer: SequenceViewerState | null;
+    onClose: () => void;
+}) {
     useEffect(() => {
         if (!viewer) return undefined;
         document.body.classList.add('viewer-open');
-        const onKey = (event) => event.key === 'Escape' && onClose();
+        const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
         window.addEventListener('keydown', onKey);
         return () => {
             document.body.classList.remove('viewer-open');
@@ -135,7 +142,7 @@ export default function SequenceViewer({ viewer, onClose }) {
     );
 }
 
-function Overlay({ onClose, children }) {
+function Overlay({ onClose, children }: { onClose: () => void; children: ReactNode }) {
     return createPortal(
         <div className='seq-overlay' onMouseDown={onClose}>
             <div className='seq-panel' onMouseDown={(event) => event.stopPropagation()}>

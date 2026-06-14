@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useServer } from '../server/ServerContext.jsx';
-import Sidebar from './Sidebar.jsx';
+import { type ReactNode, useEffect, useState } from 'react';
+import { useServer } from '../server/ServerContext';
+import Sidebar from './Sidebar';
 import logoUrl from '../silo-logo-icon-only.png';
 
-export default function Layout({ children }) {
+export default function Layout({ children }: { children: ReactNode }) {
     const { server, setServer } = useServer();
     const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
         if (!menuOpen) return undefined;
-        const onKey = (event) => event.key === 'Escape' && setMenuOpen(false);
+        const onKey = (event: KeyboardEvent) => event.key === 'Escape' && setMenuOpen(false);
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [menuOpen]);

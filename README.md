@@ -1,8 +1,8 @@
 # SILO Web Client
 
 A small, fully client-side web app for querying and learning SILO. It is a static
-React (Vite) application — it can be served by any static host (nginx, GitHub
-Pages, …) with no backend of its own.
+React + TypeScript (Vite) application — it can be served by any static host
+(nginx, GitHub Pages, …) with no backend of its own.
 
 Pages (left sidebar):
 
@@ -43,6 +43,7 @@ per column:
 ```sh
 npm install
 npm run dev          # http://localhost:5001
+npm run typecheck    # TypeScript
 npm test             # run unit tests (Vitest)
 npm run format       # format with Prettier (check-format to verify)
 ```

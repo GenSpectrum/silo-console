@@ -1,6 +1,7 @@
 // Concise reference distilled from documentation/query_documentation.md.
+import type { ReactNode } from 'react';
 
-function Code({ children }) {
+function Code({ children }: { children: ReactNode }) {
     return (
         <pre>
             <code>{children}</code>
@@ -292,7 +293,7 @@ isNotNull(pango_lineage)`}
     );
 }
 
-function Ref({ name, desc, children }) {
+function Ref({ name, desc, children }: { name: string; desc: string; children: ReactNode }) {
     return (
         <div style={{ marginBottom: 16 }}>
             <h3 style={{ margin: '0 0 4px', fontSize: 15 }}>

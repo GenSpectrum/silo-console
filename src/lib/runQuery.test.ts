@@ -1,13 +1,23 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { runBounded } from './runQuery.js';
+import { runBounded } from './runQuery';
 
-function response({ ok, status = 200, body = '', dataVersion = '' }) {
+function response({
+    ok,
+    status = 200,
+    body = '',
+    dataVersion = '',
+}: {
+    ok: boolean;
+    status?: number;
+    body?: string;
+    dataVersion?: string;
+}) {
     return {
         ok,
         status,
         statusText: ok ? 'OK' : 'Bad Request',
         text: async () => body,
-        headers: { get: (key) => (key === 'data-version' ? dataVersion : null) },
+        headers: { get: (key: string) => (key === 'data-version' ? dataVersion : null) },
     };
 }
 

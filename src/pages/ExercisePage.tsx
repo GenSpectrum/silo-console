@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { exercises, getExercise } from '../data/exercises.js';
-import QueryRunner from '../components/QueryRunner.jsx';
+import { exercises, getExercise } from '../data/exercises';
+import QueryRunner from '../components/QueryRunner';
 
 export default function ExercisePage() {
     const { slug } = useParams();

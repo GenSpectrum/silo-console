@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { classifyColumns, sequenceUnit } from '../lib/sequences.js';
-import SequenceViewer from './SequenceViewer.jsx';
+import { classifyColumns, sequenceUnit } from '../lib/sequences';
+import SequenceViewer from './SequenceViewer';
+import type { QueryRow, QueryValue, SequenceViewerState } from '../lib/types';
 
 const MIN_COLUMN_WIDTH = 150;
 const ROW_NUM_WIDTH = 48;
@@ -10,7 +11,7 @@ const CELL_CHAR_WIDTH = 7.3; // monospace px per character (cell values), used t
 const SEQUENCE_PREVIEW_CHARS = 80;
 
 // Width of a column: enough to show its header on one line, but at least MIN_COLUMN_WIDTH.
-function columnWidth(column, aligned) {
+function columnWidth(column: string, aligned: boolean) {
     const header = column.length * HEADER_CHAR_WIDTH + 24 + (aligned ? ALIGN_BUTTON_WIDTH : 0);
     return Math.max(MIN_COLUMN_WIDTH, Math.round(header));
 }
@@ -18,12 +19,12 @@ function columnWidth(column, aligned) {
 // Renders NDJSON result rows as a fixed-layout table: columns are sized to their header (min 150px),
 // every cell is a single line, and content that doesn't fit is expanded on demand — strings via a
 // more/less toggle, sequences via the viewer.
-export default function ResultsTable({ rows }) {
-    const [viewer, setViewer] = useState(null);
+export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
+    const [viewer, setViewer] = useState<SequenceViewerState | null>(null);
     const data = rows ?? [];
 
     const columns = useMemo(() => {
-        const set = new Set();
+        const set = new Set<string>();
         data.forEach((row) => Object.keys(row).forEach((key) => set.add(key)));
         return Array.from(set);
     }, [data]);
@@ -37,16 +38,20 @@ export default function ResultsTable({ rows }) {
 
     const tableWidth = ROW_NUM_WIDTH + widths.reduce((sum, width) => sum + width, 0);
 
-    const openSingle = (column, row, index) =>
-        setViewer({ type: 'single', title: column, label: String(index + 1), sequence: row[column] });
+    const openSingle = (column: string, row: QueryRow, index: number) => {
+        const sequence = row[column];
+        if (typeof sequence === 'string') {
+            setViewer({ type: 'single', title: column, label: String(index + 1), sequence });
+        }
+    };
 
-    const openAlignment = (column) =>
+    const openAlignment = (column: string) =>
         setViewer({
             type: 'alignment',
             title: column,
             entries: data
                 .map((row, index) => ({ label: String(index + 1), sequence: row[column] }))
-                .filter((entry) => typeof entry.sequence === 'string'),
+                .filter((entry): entry is { label: string; sequence: string } => typeof entry.sequence === 'string'),
         });
 
     return (
@@ -99,7 +104,14 @@ export default function ResultsTable({ rows }) {
     );
 }
 
-function Cell({ value, isSequence, width, onView }) {
+type CellProps = {
+    value: QueryValue | undefined;
+    isSequence: boolean;
+    width: number;
+    onView: () => void;
+};
+
+function Cell({ value, isSequence, width, onView }: CellProps) {
     if (value === null || value === undefined) return <td className='null-value' />;
     if (typeof value === 'object') {
         return (
@@ -143,7 +155,7 @@ function Cell({ value, isSequence, width, onView }) {
     );
 }
 
-function ExpandableText({ value }) {
+function ExpandableText({ value }: { value: string }) {
     const [expanded, setExpanded] = useState(false);
     return (
         <div className={expanded ? 'cell expanded' : 'cell'}>

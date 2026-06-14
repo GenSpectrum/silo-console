@@ -1,37 +1,55 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useServer } from '../server/ServerContext.jsx';
-import { runBounded } from '../lib/runQuery.js';
-import { resultsMatch } from '../lib/compareResults.js';
-import { celebrate } from '../lib/celebrate.js';
-import { parseErrorPosition } from '../lib/parseError.js';
-import QueryEditor from './QueryEditor.jsx';
-import ResultsTable from './ResultsTable.jsx';
+import { useServer } from '../server/ServerContext';
+import { runBounded } from '../lib/runQuery';
+import { resultsMatch } from '../lib/compareResults';
+import { celebrate } from '../lib/celebrate';
+import { parseErrorPosition } from '../lib/parseError';
+import QueryEditor from './QueryEditor';
+import ResultsTable from './ResultsTable';
+import type { ErrorPosition, QueryResult, QueryRow } from '../lib/types';
+import type { SiloQueryError } from '../lib/runQuery';
 
 // Caches reference-answer results by `${base}\n${query}` so re-running an
 // exercise doesn't repeatedly re-query the server for the same answer.
-const referenceCache = new Map();
+const referenceCache = new Map<string, QueryRow[]>();
 
-async function getReferenceRows(base, referenceQuery) {
+async function getReferenceRows(base: string, referenceQuery: string) {
     const key = base + '\n' + referenceQuery;
-    if (referenceCache.has(key)) return referenceCache.get(key);
+    const cached = referenceCache.get(key);
+    if (cached) return cached;
     const res = await runBounded(base, referenceQuery);
     referenceCache.set(key, res.rows);
     return res.rows;
 }
 
+type Verdict = {
+    status: 'correct' | 'wrong' | 'unknown';
+    message: string;
+};
+
+type ErrorMark = {
+    position: ErrorPosition;
+    message: string;
+};
+
+type QueryRunnerProps = {
+    initialQuery?: string;
+    referenceQuery?: string;
+};
+
 // Reusable query widget: editor + Run button + status/meta/error + results table.
 // When `referenceQuery` is provided (exercise mode), the user's result is
 // compared against the reference answer and a Correct!/Wrong! verdict is shown.
-export default function QueryRunner({ initialQuery = '', referenceQuery }) {
+export default function QueryRunner({ initialQuery = '', referenceQuery }: QueryRunnerProps) {
     const { getBase } = useServer();
     const [query, setQuery] = useState(initialQuery);
     const [running, setRunning] = useState(false);
-    const [error, setError] = useState(null);
-    const [errorMark, setErrorMark] = useState(null);
-    const [result, setResult] = useState(null);
-    const [verdict, setVerdict] = useState(null);
+    const [error, setError] = useState<string | null>(null);
+    const [errorMark, setErrorMark] = useState<ErrorMark | null>(null);
+    const [result, setResult] = useState<QueryResult | null>(null);
+    const [verdict, setVerdict] = useState<Verdict | null>(null);
 
-    const handleChange = useCallback((value) => {
+    const handleChange = useCallback((value: string) => {
         setQuery(value);
         setErrorMark(null);
     }, []);
@@ -69,9 +87,10 @@ export default function QueryRunner({ initialQuery = '', referenceQuery }) {
                 }
             }
         } catch (err) {
-            setError(err.message);
-            const position = parseErrorPosition(err.siloMessage);
-            if (position) setErrorMark({ position, message: err.siloMessage });
+            const queryError = err as SiloQueryError;
+            setError(queryError.message);
+            const position = parseErrorPosition(queryError.siloMessage);
+            if (position) setErrorMark({ position, message: queryError.siloMessage || queryError.message });
         } finally {
             setRunning(false);
         }

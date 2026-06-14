@@ -1,16 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import App from './App.jsx';
-import { BASENAME } from './config.js';
-import { ServerProvider } from './server/ServerContext.jsx';
-import ConsolePage from './pages/ConsolePage.jsx';
-import LanguageReferencePage from './pages/LanguageReferencePage.jsx';
-import ExercisesListPage from './pages/ExercisesListPage.jsx';
-import ExercisePage from './pages/ExercisePage.jsx';
+import App from './App';
+import { BASENAME } from './config';
+import { ServerProvider } from './server/ServerContext';
+import ConsolePage from './pages/ConsolePage';
+import LanguageReferencePage from './pages/LanguageReferencePage';
+import ExercisesListPage from './pages/ExercisesListPage';
+import ExercisePage from './pages/ExercisePage';
 import './styles.css';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+const root = document.getElementById('root');
+if (!root) throw new Error('Missing root element');
+
+ReactDOM.createRoot(root).render(
     <React.StrictMode>
         <BrowserRouter basename={BASENAME}>
             <ServerProvider>

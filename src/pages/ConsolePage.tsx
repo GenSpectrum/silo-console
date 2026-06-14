@@ -1,4 +1,4 @@
-import QueryRunner from '../components/QueryRunner.jsx';
+import QueryRunner from '../components/QueryRunner';
 
 export default function ConsolePage() {
     return (

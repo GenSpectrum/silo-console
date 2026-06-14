@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resultsMatch } from './compareResults.js';
+import { resultsMatch } from './compareResults';
 
 describe('resultsMatch', () => {
     it('is true regardless of row order', () => {
