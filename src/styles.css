@@ -317,6 +317,39 @@ thead th {
     top: 0;
     font-weight: 600;
 }
+.resizable-th {
+    position: sticky;
+}
+.column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -4px;
+    z-index: 1;
+    width: 8px;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: col-resize;
+    touch-action: none;
+}
+.column-resize-handle::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 3px;
+    bottom: 8px;
+    border-right: 1px solid transparent;
+}
+.column-resize-handle:hover::after,
+.column-resize-handle:focus-visible::after {
+    border-color: var(--accent);
+}
+.column-resizing,
+.column-resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
 tbody td {
     border-bottom: 1px solid var(--border);
     padding: 6px 10px;

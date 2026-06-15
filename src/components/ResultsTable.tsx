@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { classifyColumns, sequenceUnit } from '../lib/sequences';
 import SequenceViewer from './SequenceViewer';
 import type { QueryRow, QueryValue, SequenceViewerState } from '../lib/types';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 
 const MIN_COLUMN_WIDTH = 150;
 const ROW_NUM_WIDTH = 48;
@@ -16,11 +18,24 @@ function columnWidth(column: string, aligned: boolean) {
     return Math.max(MIN_COLUMN_WIDTH, Math.round(header));
 }
 
+type ColumnWidthState = {
+    columnKey: string;
+    widths: Record<string, number>;
+};
+
+type DragState = {
+    column: string;
+    startX: number;
+    startWidth: number;
+};
+
 // Renders NDJSON result rows as a fixed-layout table: columns are sized to their header (min 150px),
 // every cell is a single line, and content that doesn't fit is expanded on demand — strings via a
 // more/less toggle, sequences via the viewer.
 export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
     const [viewer, setViewer] = useState<SequenceViewerState | null>(null);
+    const [columnWidthState, setColumnWidthState] = useState<ColumnWidthState>({ columnKey: '', widths: {} });
+    const [dragState, setDragState] = useState<DragState | null>(null);
     const data = rows ?? [];
 
     const columns = useMemo(() => {
@@ -29,10 +44,43 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
         return Array.from(set);
     }, [data]);
     const classified = useMemo(() => classifyColumns(data, columns), [data, columns]);
-    const widths = useMemo(
-        () => columns.map((column) => columnWidth(column, classified[column].isAligned)),
-        [columns, classified],
-    );
+    const columnKey = useMemo(() => columns.join('\u0000'), [columns]);
+    const widths = useMemo(() => {
+        const adjustedWidths = columnWidthState.columnKey === columnKey ? columnWidthState.widths : {};
+        return columns.map((column) => adjustedWidths[column] ?? columnWidth(column, classified[column].isAligned));
+    }, [columnKey, columnWidthState, columns, classified]);
+
+    useEffect(() => {
+        if (!dragState) return;
+
+        const move = (event: PointerEvent) => {
+            const width = Math.max(
+                MIN_COLUMN_WIDTH,
+                Math.round(dragState.startWidth + event.clientX - dragState.startX),
+            );
+            setColumnWidthState((prev) => ({
+                columnKey,
+                widths: {
+                    ...(prev.columnKey === columnKey ? prev.widths : {}),
+                    [dragState.column]: width,
+                },
+            }));
+        };
+
+        const stop = () => setDragState(null);
+
+        document.body.classList.add('column-resizing');
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', stop);
+        window.addEventListener('pointercancel', stop);
+
+        return () => {
+            document.body.classList.remove('column-resizing');
+            window.removeEventListener('pointermove', move);
+            window.removeEventListener('pointerup', stop);
+            window.removeEventListener('pointercancel', stop);
+        };
+    }, [columnKey, dragState]);
 
     if (data.length === 0) return null;
 
@@ -54,6 +102,25 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
                 .filter((entry): entry is { label: string; sequence: string } => typeof entry.sequence === 'string'),
         });
 
+    const startResize = (column: string, width: number, event: ReactPointerEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        setDragState({ column, startX: event.clientX, startWidth: width });
+    };
+
+    const resizeByKeyboard = (column: string, width: number, event: ReactKeyboardEvent<HTMLButtonElement>) => {
+        const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+        if (direction === 0) return;
+
+        event.preventDefault();
+        setColumnWidthState((prev) => ({
+            columnKey,
+            widths: {
+                ...(prev.columnKey === columnKey ? prev.widths : {}),
+                [column]: Math.max(MIN_COLUMN_WIDTH, width + direction * 20),
+            },
+        }));
+    };
+
     return (
         <>
             <div className='table-wrap'>
@@ -67,8 +134,8 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
                     <thead>
                         <tr>
                             <th className='row-num'>#</th>
-                            {columns.map((column) => (
-                                <th key={column}>
+                            {columns.map((column, i) => (
+                                <th key={column} className='resizable-th'>
                                     <div className='cell'>
                                         <span className='trunc'>{column}</span>
                                         {classified[column].isAligned && (
@@ -77,6 +144,13 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
                                             </button>
                                         )}
                                     </div>
+                                    <button
+                                        type='button'
+                                        className='column-resize-handle'
+                                        aria-label={`Resize ${column} column`}
+                                        onPointerDown={(event) => startResize(column, widths[i], event)}
+                                        onKeyDown={(event) => resizeByKeyboard(column, widths[i], event)}
+                                    />
                                 </th>
                             ))}
                         </tr>
