@@ -141,8 +141,7 @@ export const exercises: Exercise[] = [
   .filter(country = 'Switzerland')
   .aminoAcidMutations(minProportion:=0.1, sequenceNames:={S})
   .groupBy({count:=count()}, {mutationTo})
-  .orderBy({count.desc()})
-  .limit(20)`,
+  .orderBy({count.desc()})`,
     },
     {
         slug: 's-mutation-profile',
