@@ -120,8 +120,8 @@ export default function QueryRunner({ initialQuery = '', referenceQuery }: Query
             {result && (
                 <>
                     <div className='meta'>
-                        {result.rows.length} row{result.rows.length === 1 ? '' : 's'} · {result.executionMs} ms
-                        execution + {result.downloadMs} ms download (= {result.elapsedMs} ms total)
+                        {result.rows.length} row{result.rows.length === 1 ? '' : 's'} · {result.executionMs} ms until
+                        first content download + {result.downloadMs} ms download (= {result.elapsedMs} ms total)
                         {result.dataVersion ? ` · data-version ${result.dataVersion}` : ''}
                     </div>
                     <ResultsTable rows={result.rows} />
