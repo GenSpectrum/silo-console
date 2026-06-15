@@ -4,6 +4,7 @@ import { runBounded } from '../lib/runQuery';
 import { resultsMatch } from '../lib/compareResults';
 import { celebrate } from '../lib/celebrate';
 import { parseErrorPosition } from '../lib/parseError';
+import { buildCurlCommand } from '../lib/curlCommand';
 import QueryEditor from './QueryEditor';
 import ResultsTable from './ResultsTable';
 import type { ErrorPosition, QueryResult, QueryRow } from '../lib/types';
@@ -48,10 +49,13 @@ export default function QueryRunner({ initialQuery = '', referenceQuery }: Query
     const [errorMark, setErrorMark] = useState<ErrorMark | null>(null);
     const [result, setResult] = useState<QueryResult | null>(null);
     const [verdict, setVerdict] = useState<Verdict | null>(null);
+    const [showCurl, setShowCurl] = useState(false);
+    const [curlCopied, setCurlCopied] = useState(false);
 
     const handleChange = useCallback((value: string) => {
         setQuery(value);
         setErrorMark(null);
+        setCurlCopied(false);
     }, []);
 
     useEffect(() => {
@@ -96,6 +100,22 @@ export default function QueryRunner({ initialQuery = '', referenceQuery }: Query
         }
     }, [query, referenceQuery, getBase]);
 
+    const curlCommand = buildCurlCommand(getBase(), query);
+
+    const copyCurlCommand = useCallback(async () => {
+        try {
+            await navigator.clipboard.writeText(curlCommand);
+            setCurlCopied(true);
+        } catch {
+            setCurlCopied(false);
+        }
+    }, [curlCommand]);
+
+    const toggleCurlCommand = useCallback(() => {
+        setShowCurl((value) => !value);
+        setCurlCopied(false);
+    }, []);
+
     return (
         <div>
             <QueryEditor
@@ -110,8 +130,20 @@ export default function QueryRunner({ initialQuery = '', referenceQuery }: Query
                 <button onClick={run} disabled={running}>
                     Run (Ctrl/Cmd+Enter)
                 </button>
+                <button className='secondary subtle' onClick={toggleCurlCommand}>
+                    cURL
+                </button>
                 {running && <span className='hint'>Running…</span>}
             </div>
+
+            {showCurl && (
+                <div className='curl-box'>
+                    <pre>{curlCommand}</pre>
+                    <button className='secondary' onClick={copyCurlCommand}>
+                        {curlCopied ? 'Copied' : 'Copy'}
+                    </button>
+                </div>
+            )}
 
             {verdict && <div className={`verdict ${verdict.status}`}>{verdict.message}</div>}
 

@@ -270,6 +270,10 @@ button.secondary:hover:not(:disabled) {
     border-color: var(--accent);
     color: var(--accent-strong);
 }
+button.subtle {
+    padding-inline: 12px;
+    color: var(--muted);
+}
 
 .hint {
     color: var(--muted);
@@ -295,6 +299,31 @@ button.secondary:hover:not(:disabled) {
     color: var(--muted);
     font-size: 13px;
     margin-top: 12px;
+}
+
+.curl-box {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-top: 10px;
+    padding: 10px;
+}
+.curl-box pre {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow-x: auto;
+    font:
+        12px ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Consolas,
+        monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .table-wrap {
