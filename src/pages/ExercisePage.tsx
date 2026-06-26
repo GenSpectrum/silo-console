@@ -27,7 +27,7 @@ export default function ExercisePage() {
             <h2>
                 Exercise {index + 1}: {exercise.title}
             </h2>
-            <div className='question'>{exercise.question}</div>
+            <ExerciseDescription text={exercise.question} />
             <p className='hint'>
                 Write your query and run it. Your result is automatically compared against the reference answer.
             </p>
@@ -51,6 +51,30 @@ export default function ExercisePage() {
                     </button>
                 )}
             </div>
+        </div>
+    );
+}
+
+function ExerciseDescription({ text }: { text: string }) {
+    const blocks = text.split('~~~');
+
+    return (
+        <div className='question'>
+            {blocks.map((block, index) =>
+                index % 2 === 1 ? (
+                    <pre className='exercise-example' key={index}>
+                        <code>{block.trim()}</code>
+                    </pre>
+                ) : (
+                    block
+                        .trim()
+                        .split(/\n{2,}/)
+                        .filter(Boolean)
+                        .map((paragraph, paragraphIndex) => (
+                            <p key={`${index}-${paragraphIndex}`}>{paragraph.replace(/\n/g, ' ')}</p>
+                        ))
+                ),
+            )}
         </div>
     );
 }

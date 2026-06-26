@@ -12,6 +12,7 @@ const FUNCTIONS = new Set([
     'limit',
     'offset',
     'randomize',
+    'unionAll',
     'mutations',
     'aminoAcidMutations',
     'insertions',
@@ -20,6 +21,7 @@ const FUNCTIONS = new Set([
     'phyloSubtree',
     // scalar / filter functions
     'between',
+    'at',
     'in',
     'isNull',
     'isNotNull',

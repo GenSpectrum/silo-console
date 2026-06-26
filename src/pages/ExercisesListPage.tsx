@@ -17,7 +17,7 @@ export default function ExercisesListPage() {
                         <div>
                             <Link to={`/exercises/${ex.slug}`}>{ex.title}</Link>
                         </div>
-                        <div className='hint'>{ex.question}</div>
+                        <div className='hint'>{ex.question.split('\n\n')[0]}</div>
                     </li>
                 ))}
             </ul>

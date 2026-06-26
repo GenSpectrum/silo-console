@@ -155,6 +155,58 @@ export const exercises: Exercise[] = [
   }))
   .groupBy({count:=count()})`,
     },
+    {
+        slug: 's-position-symbols',
+        title: 'Co-occurring S protein changes',
+        question: `In the sequences from Switzerland, investigate the co-occurrence patterns at S protein positions 69, 70 and 501. Return one row for each combination together with the count.
+
+The output should have this shape:
+
+~~~
+pos_69 | pos_70 | pos_501 | count
+------ | ------ | ------- | -----
+H      | V      | N       | 1234
+-      | -      | Y       | 987
+~~~
+
+Order the combinations by count descending so the most common S-position pattern appears first.`,
+        answer: `default
+  .filter(country = 'Switzerland')
+  .map({pos_69 := S.at(69), pos_70 := S.at(70), pos_501 := S.at(501)})
+  .groupBy({count := count()}, {pos_69, pos_70, pos_501})
+  .orderBy({count.desc()})`,
+    },
+    {
+        slug: 'combine-germany-usa',
+        title: 'Compare recent German and US submissions',
+        question: `Build one harmonized table for recent SARS-CoV-2 submissions from Germany and the USA. Include the strain name, collection date, pango lineage and a place column.
+
+For Germany, place should identify the country (i.e. always just be "Germany"). For the USA, place should identify the division. Use the 100 most recent German rows and the 100 most recent US rows, then sort the combined 200-row table by date descending.
+
+The combined output should look like one table with rows from both sources:
+
+~~~
+strain        | date       | pangoLineage | place
+------------- | ---------- | ------------ | ----------
+sample-DE-001 | 2024-05-10 | JN.1         | Germany
+sample-US-001 | 2024-05-09 | JN.1.4       | California
+~~~`,
+        answer: `default
+  .filter(country = 'Germany')
+  .map({place := country})
+  .project({strain, date, pangoLineage, place})
+  .orderBy({date.desc()})
+  .limit(100)
+  .unionAll(
+    default
+      .filter(country = 'USA')
+      .map({place := division})
+      .project({strain, date, pangoLineage, place})
+      .orderBy({date.desc()})
+      .limit(100)
+  )
+  .orderBy({date.desc()})`,
+    },
 ];
 
 export function getExercise(slug: string | undefined) {

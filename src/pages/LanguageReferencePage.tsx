@@ -38,7 +38,7 @@ export default function LanguageReferencePage() {
                 </li>
                 <li>
                     <strong>Schema-defining</strong> operators (<code>groupBy</code>, <code>project</code>,{' '}
-                    <code>map</code>, <code>mutations</code>, …) produce a changed output schema.
+                    <code>map</code>, <code>unionAll</code>, <code>mutations</code>, …) produce a changed output schema.
                 </li>
             </ul>
 
@@ -152,9 +152,10 @@ date <= '2021-12-31'::date`}</Code>
             </Ref>
             <Ref
                 name='map(expressions)'
-                desc='Add columns from name := value assignments (field references, integers, floats, strings, booleans). Existing names are replaced.'
+                desc='Add columns from name := value assignments (field references, literals, and non-boolean scalar functions such as at). Existing names are replaced.'
             >
-                {`default.map({x := 3, label := 'cohort A', copy := country})`}
+                {`default.map({x := 3, label := 'cohort A', copy := country})
+default.map({pos_501 := S.at(501)})`}
             </Ref>
             <Ref
                 name='orderBy(fields)'
@@ -170,6 +171,14 @@ date <= '2021-12-31'::date`}</Code>
             </Ref>
             <Ref name='randomize([seed:=n])' desc='Return rows in random order; optional seed for reproducibility.'>
                 {`default.randomize(seed:=42)`}
+            </Ref>
+            <Ref
+                name='unionAll(left, right)'
+                desc='Concatenate two pipeline results. Both inputs must have the same column names, types, and order; duplicate rows are preserved. The result can be piped into downstream operators.'
+            >
+                {`default.filter(division = 'Aargau').project({division})
+  .unionAll(default.filter(division = 'Bern').project({division}))
+  .groupBy({count := count()}, {division})`}
             </Ref>
             <Ref
                 name='mutations(minProportion:=p [, sequenceNames:={...}] [, fields:={...}])'
@@ -208,7 +217,17 @@ date <= '2021-12-31'::date`}</Code>
                 {`default.filter(pango_lineage = 'B.1.1.7').phyloSubtree('usherTree')`}
             </Ref>
 
-            <h2>Scalar functions (for use inside filter)</h2>
+            <h2>Scalar functions</h2>
+            <p>
+                Most scalar functions are boolean predicates for <code>filter</code>. Non-boolean scalar functions such
+                as <code>at</code> return values for <code>map</code> assignments.
+            </p>
+            <Ref
+                name='at(column, position)'
+                desc='Extract the single character at the 1-based position from a string or sequence column. Positions past the end return an empty string; null values stay null.'
+            >
+                {`default.map({pos_501 := S.at(501)})`}
+            </Ref>
             <Ref
                 name='between(column, from, to)'
                 desc='Inclusive range; use null for an open bound. Works for dates, integers, floats.'

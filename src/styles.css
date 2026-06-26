@@ -485,6 +485,18 @@ td.null-value {
     padding: 12px 14px;
     margin-bottom: 16px;
 }
+.question p {
+    margin: 0 0 10px;
+}
+.question p:last-child {
+    margin-bottom: 0;
+}
+.exercise-example {
+    background: #ffffff;
+    margin: 12px 0;
+    max-width: 100%;
+    overflow-x: auto;
+}
 .answer-block {
     margin-top: 12px;
 }
