@@ -52,12 +52,23 @@ export const exercises: Exercise[] = [
   .limit(20)`,
     },
     {
+        slug: 'submissions-by-iso-week',
+        title: 'Submissions by ISO week',
+        question:
+            'Summarize sequences collected in 2024 by ISO calendar week. Return the week number and sequence count, ordered chronologically.',
+        answer: `default
+  .filter(date.between('2024-01-01'::date, '2024-12-31'::date))
+  .map({week:=date.isoWeek()})
+  .groupBy({count:=count()}, {week})
+  .orderBy({week})`,
+    },
+    {
         slug: 'mutation-details',
         title: 'Sequences with a mutation',
         question:
             'For sequences that carry a mutation at nucleotide position 23403, show the strain, country, date and pangoLineage. Order by strain and return the first 20 rows.',
         answer: `default
-  .filter(hasMutation(position:=23403))
+  .filter(hasMutation(position:=23403, sequenceName:='main'))
   .project({strain, country, date, pangoLineage})
   .orderBy({strain})
   .limit(20)`,
@@ -82,9 +93,9 @@ export const exercises: Exercise[] = [
     country = 'Germany'
     && pangoLineage.lineage('B.1.1.7', includeSublineages:=true)
     && nOf(2, {
-         nucleotideEquals(position:=241, symbol:='T'),
-         nucleotideEquals(position:=3037, symbol:='T'),
-         nucleotideEquals(position:=23403, symbol:='G')
+         nucleotideEquals(position:=241, symbol:='T', sequenceName:='main'),
+         nucleotideEquals(position:=3037, symbol:='T', sequenceName:='main'),
+         nucleotideEquals(position:=23403, symbol:='G', sequenceName:='main')
        })
   )
   .groupBy({count:=count()})`,
@@ -104,11 +115,11 @@ export const exercises: Exercise[] = [
         slug: 'aa-insertions',
         title: 'Amino acid insertions',
         question:
-            "Find amino acid insertions in the S sequence after position 214 whose inserted symbols match the regular expression '.*PE'. Order by inserted symbols and position, and return at most 20 rows.",
+            'List the 20 most common amino acid insertions in the S protein. For each insertion, show its position, inserted symbols and the number of sequences carrying it, with the most common first.',
         answer: `default
-  .filter(aminoAcidInsertionContains(position:=214, value:='.*PE', sequenceName:='S'))
-  .aminoAcidInsertions()
-  .orderBy({insertedSymbols, position})
+  .aminoAcidInsertions(sequenceNames:={S})
+  .project({position, insertedSymbols, count})
+  .orderBy({count.desc(), insertedSymbols, position})
   .limit(20)`,
     },
     {

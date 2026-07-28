@@ -38,7 +38,8 @@ export default function LanguageReferencePage() {
                 </li>
                 <li>
                     <strong>Schema-defining</strong> operators (<code>groupBy</code>, <code>project</code>,{' '}
-                    <code>map</code>, <code>unionAll</code>, <code>mutations</code>, …) produce a changed output schema.
+                    <code>map</code>, <code>unionAll</code>, <code>schema</code>, <code>mutations</code>, …) produce a
+                    changed output schema.
                 </li>
             </ul>
 
@@ -152,7 +153,7 @@ date <= '2021-12-31'::date`}</Code>
             </Ref>
             <Ref
                 name='map(expressions)'
-                desc='Add columns from name := value assignments (field references, literals, and non-boolean scalar functions such as at). Existing names are replaced.'
+                desc='Add columns from name := value assignments (field references, literals, and non-boolean scalar functions such as at and isoWeek). Existing names are replaced.'
             >
                 {`default.map({x := 3, label := 'cohort A', copy := country})
 default.map({pos_501 := S.at(501)})`}
@@ -181,6 +182,13 @@ default.map({pos_501 := S.at(501)})`}
   .groupBy({count := count()}, {division})`}
             </Ref>
             <Ref
+                name='schema()'
+                desc='Describe the input pipeline without reading its data. Output: one row per field with fieldName and type. The result can be projected, mapped, ordered and limited; sequence columns are reported as STRING.'
+            >
+                {`default.schema()
+default.groupBy({count:=count()}, {country}).schema()`}
+            </Ref>
+            <Ref
                 name='mutations(minProportion:=p [, sequenceNames:={...}] [, fields:={...}])'
                 desc='Nucleotide mutation statistics above a frequency threshold. Output: mutation, mutationFrom, mutationTo, position, sequenceName, proportion, coverage, count. Only valid on a table or a direct filter of a table.'
             >
@@ -194,7 +202,7 @@ default.map({pos_501 := S.at(501)})`}
             </Ref>
             <Ref
                 name='insertions([sequenceNames:={...}])'
-                desc='Nucleotide insertions aggregated by value. Output: insertion, insertedSymbols, position, sequenceName, count.'
+                desc='Aggregate every nucleotide insertion in the input rows by sequence name, position and inserted symbols. Output: insertion (formatted as ins_<sequenceName>:<position>:<symbols>), insertedSymbols, position, sequenceName, count. A preceding filter determines the input rows; all insertions in those rows are aggregated.'
             >
                 {`default.insertions(sequenceNames:={main})`}
             </Ref>
@@ -202,7 +210,7 @@ default.map({pos_501 := S.at(501)})`}
                 name='aminoAcidInsertions([sequenceNames:={...}])'
                 desc='Same as insertions but for amino acid sequences.'
             >
-                {`default.aminoAcidInsertions()`}
+                {`default.aminoAcidInsertions(sequenceNames:={S})`}
             </Ref>
             <Ref
                 name='mostRecentCommonAncestor(column [, printNodesNotInTree:=bool])'
@@ -220,13 +228,16 @@ default.map({pos_501 := S.at(501)})`}
             <h2>Scalar functions</h2>
             <p>
                 Most scalar functions are boolean predicates for <code>filter</code>. Non-boolean scalar functions such
-                as <code>at</code> return values for <code>map</code> assignments.
+                as <code>at</code> and <code>isoWeek</code> return values for <code>map</code> assignments.
             </p>
             <Ref
                 name='at(column, position)'
                 desc='Extract the single character at the 1-based position from a string or sequence column. Positions past the end return an empty string; null values stay null.'
             >
                 {`default.map({pos_501 := S.at(501)})`}
+            </Ref>
+            <Ref name='isoWeek(column)' desc='Extract the ISO 8601 week number (1–53) from a date column.'>
+                {`default.map({week := date.isoWeek()})`}
             </Ref>
             <Ref
                 name='between(column, from, to)'
@@ -254,59 +265,69 @@ isNotNull(pango_lineage)`}
             <Ref name='phyloDescendantOf(column, node)' desc='True if the tree column value descends from node.'>
                 {`usherTree.phyloDescendantOf('NODE_0000072')`}
             </Ref>
+            <p className='hint'>
+                Every nucleotide and amino acid filter or mutation profile requires an explicit sequenceName.
+            </p>
             <Ref
-                name='nucleotideEquals(position:=n, symbol:=s [, sequenceName:=name])'
+                name='nucleotideEquals(position:=n, symbol:=s, sequenceName:=name)'
                 desc="True if the nucleotide at 1-based position n is s. Use '.' to match the reference."
             >
                 {`nucleotideEquals(position:=100, symbol:='A', sequenceName:='main')`}
             </Ref>
             <Ref
-                name='aminoAcidEquals(position:=n, symbol:=s [, sequenceName:=name])'
+                name='aminoAcidEquals(position:=n, symbol:=s, sequenceName:=name)'
                 desc='Same as nucleotideEquals for amino acids.'
             >
                 {`aminoAcidEquals(position:=501, symbol:='Y', sequenceName:='S')`}
             </Ref>
             <Ref
-                name='hasMutation(position:=n [, sequenceName:=name]) / hasAAMutation(...)'
+                name='hasMutation(position:=n, sequenceName:=name) / hasAAMutation(...)'
                 desc='True if the symbol at position n differs from the reference and is not N (nucleotide / amino acid).'
             >
-                {`hasMutation(position:=23403)`}
+                {`hasMutation(position:=23403, sequenceName:='main')`}
             </Ref>
             <Ref
-                name='insertionContains(position:=n, value:=regex [, sequenceName:=name])'
+                name='insertionContains(position:=n, value:=regex, sequenceName:=name)'
                 desc="True if there is an insertion after position n matching regex (nucleotide). aminoAcidInsertionContains is the AA variant (escape '*' as \\\\*)."
             >
-                {`insertionContains(position:=22204, value:='A.*G')`}
+                {`insertionContains(position:=22204, value:='A.*G', sequenceName:='main')`}
             </Ref>
             <Ref
                 name='maybe(child) / exact(child)'
                 desc='Relax (allow ambiguous symbols) or tighten (require exact match) a child expression.'
             >
-                {`maybe(nucleotideEquals(position:=122, symbol:='A'))`}
+                {`maybe(nucleotideEquals(position:=122, symbol:='A', sequenceName:='main'))`}
             </Ref>
             <Ref
                 name='nOf(count, {children} [, matchExactly:=bool])'
                 desc='True if at least count (or exactly count) child expressions are true.'
             >
                 {`nOf(2, {
-  nucleotideEquals(position:=241, symbol:='T'),
-  nucleotideEquals(position:=3037, symbol:='T'),
-  nucleotideEquals(position:=23403, symbol:='G')
+  nucleotideEquals(position:=241, symbol:='T', sequenceName:='main'),
+  nucleotideEquals(position:=3037, symbol:='T', sequenceName:='main'),
+  nucleotideEquals(position:=23403, symbol:='G', sequenceName:='main')
 })`}
             </Ref>
             <Ref
-                name='nucleotideMutationProfile(distance:=n, ... [, sequenceName:=name]) / aminoAcidMutationProfile(...)'
+                name='nucleotideMutationProfile(distance:=n, ..., sequenceName:=name) / aminoAcidMutationProfile(...)'
                 desc='True if a sequence is within distance conservative differences from a profile, defined by exactly one of querySequence, sequenceId, or mutations:={...}.'
             >
-                {`nucleotideMutationProfile(distance:=3, mutations:={
+                {`nucleotideMutationProfile(distance:=3, sequenceName:='main', mutations:={
   {position:=241, symbol:='T'},
   {position:=23403, symbol:='G'}
 })`}
             </Ref>
 
             <p className='hint' style={{ marginTop: 24 }}>
-                This is a condensed reference. See <code>documentation/query_documentation.md</code> in the SILO
-                repository for the full details.
+                This is a condensed reference. See{' '}
+                <a
+                    href='https://github.com/GenSpectrum/LAPIS-SILO/blob/main/documentation/query_documentation.md'
+                    target='_blank'
+                    rel='noreferrer'
+                >
+                    SILO's query documentation
+                </a>{' '}
+                for the full details.
             </p>
         </div>
     );

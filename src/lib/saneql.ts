@@ -5,6 +5,7 @@ import { tags as t } from '@lezer/highlight';
 const FUNCTIONS = new Set([
     // pipeline operations
     'filter',
+    'schema',
     'groupBy',
     'project',
     'map',
@@ -22,6 +23,7 @@ const FUNCTIONS = new Set([
     // scalar / filter functions
     'between',
     'at',
+    'isoWeek',
     'in',
     'isNull',
     'isNotNull',
