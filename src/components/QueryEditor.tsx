@@ -40,7 +40,7 @@ export default function QueryEditor({
                         key: 'Mod-Enter',
                         preventDefault: true,
                         run: () => {
-                            onRun?.();
+                            onRun();
                             return true;
                         },
                     },

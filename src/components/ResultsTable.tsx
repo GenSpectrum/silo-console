@@ -141,7 +141,7 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
                                         {classified[column].isAligned && (
                                             <button
                                                 type='button'
-                                                className='shrink-0 link text-xs font-normal link-primary'
+                                                className='result-table-action shrink-0 link text-xs font-normal'
                                                 onClick={() => openAlignment(column)}
                                             >
                                                 align

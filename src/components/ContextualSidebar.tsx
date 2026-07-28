@@ -15,7 +15,7 @@ export default function ContextualSidebar({
     children: ReactNode;
 }) {
     return (
-        <div className='contextual-shell mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[14rem_minmax(0,1fr)] lg:px-6 lg:py-10'>
+        <div className='contextual-shell mx-auto grid w-full max-w-7xl gap-5 px-4 py-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:px-6 lg:py-10'>
             <aside className='contextual-aside'>
                 <details className='collapse border border-base-300 bg-base-200 lg:hidden'>
                     <summary className='collapse-title min-h-0 py-3 font-semibold'>{label}</summary>

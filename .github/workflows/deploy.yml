@@ -32,7 +32,7 @@ jobs:
                   # Served from https://<owner>.github.io/silo-console/ — the repo name is the base path.
                   VITE_BASE: /silo-console/
                   # Optional: set a repository variable VITE_SILO_DEFAULT_SERVER to override the default
-                  # SILO server. Empty falls back to the built-in default (see src/config.js).
+                  # SILO server. Empty falls back to the built-in default (see src/config.ts).
                   VITE_SILO_DEFAULT_SERVER: ${{ vars.VITE_SILO_DEFAULT_SERVER }}
                   # Exercises use a separate, non-editable staging target.
                   VITE_SILO_EXERCISE_SERVER: ${{ vars.VITE_SILO_EXERCISE_SERVER }}

@@ -1,8 +1,9 @@
-import { type ReactNode, useEffect } from 'react';
+import { lazy, Suspense, type ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { baseColorClass, sequenceUnit } from '../lib/sequences';
-import MsaView from './MsaView';
 import type { SequenceViewerState } from '../lib/types';
+
+const MsaView = lazy(() => import('./MsaView'));
 
 const MAX_COLOR_CELLS = 20000;
 const LINE_WIDTH = 60;
@@ -137,7 +138,15 @@ export default function SequenceViewer({
                 </button>
             </div>
             <div className='overflow-auto px-4 py-3'>
-                <MsaView entries={viewer.entries} />
+                <Suspense
+                    fallback={
+                        <div className='flex items-center gap-2 py-8 text-sm text-base-content/60' role='status'>
+                            <span className='loading loading-sm loading-spinner' /> Loading alignment viewer…
+                        </div>
+                    }
+                >
+                    <MsaView entries={viewer.entries} />
+                </Suspense>
             </div>
         </Overlay>
     );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildConsoleShareUrl, normalizeServerUrl } from './serverUrl';
+import { buildConsoleShareHash, buildConsoleShareUrl, normalizeServerUrl } from './serverUrl';
 
 describe('normalizeServerUrl', () => {
     it('trims whitespace and trailing slashes', () => {
@@ -31,5 +31,13 @@ describe('buildConsoleShareUrl', () => {
     it('omits an empty query', () => {
         const url = buildConsoleShareUrl('https://example.org/console', 'https://silo.example.org', '  ');
         expect(url).toBe('https://example.org/console#server=https%3A%2F%2Fsilo.example.org');
+    });
+});
+
+describe('buildConsoleShareHash', () => {
+    it('encodes a server and query for an in-app console link', () => {
+        expect(buildConsoleShareHash('https://silo.example.org/api', "default.filter(country = 'Switzerland')")).toBe(
+            '#server=https%3A%2F%2Fsilo.example.org%2Fapi&query=default.filter%28country+%3D+%27Switzerland%27%29',
+        );
     });
 });

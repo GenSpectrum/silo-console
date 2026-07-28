@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { runBounded } from '../lib/runQuery';
 import { resultsMatch } from '../lib/compareResults';
 import { celebrate } from '../lib/celebrate';
@@ -43,12 +43,21 @@ type QueryRunnerProps = {
     initialQuery?: string;
     referenceQuery?: string;
     onQueryChange?: (query: string) => void;
+    autoRun?: boolean;
+    onAutoRun?: () => void;
 };
 
 // Reusable query widget: editor + Run button + status/meta/error + results table.
 // When `referenceQuery` is provided (exercise mode), the user's result is
 // compared against the reference answer and a Correct!/Wrong! verdict is shown.
-export default function QueryRunner({ server, initialQuery = '', referenceQuery, onQueryChange }: QueryRunnerProps) {
+export default function QueryRunner({
+    server,
+    initialQuery = '',
+    referenceQuery,
+    onQueryChange,
+    autoRun = false,
+    onAutoRun,
+}: QueryRunnerProps) {
     const [query, setQuery] = useState(initialQuery);
     const [running, setRunning] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -57,6 +66,7 @@ export default function QueryRunner({ server, initialQuery = '', referenceQuery,
     const [verdict, setVerdict] = useState<Verdict | null>(null);
     const [showCurl, setShowCurl] = useState(false);
     const [curlCopied, setCurlCopied] = useState(false);
+    const autoRunStarted = useRef(false);
 
     const handleChange = useCallback(
         (value: string) => {
@@ -109,6 +119,13 @@ export default function QueryRunner({ server, initialQuery = '', referenceQuery,
         }
     }, [query, referenceQuery, server]);
 
+    useEffect(() => {
+        if (!autoRun || autoRunStarted.current || !query.trim()) return;
+        autoRunStarted.current = true;
+        onAutoRun?.();
+        void run();
+    }, [autoRun, onAutoRun, query, run]);
+
     const curlCommand = buildCurlCommand(server, query);
 
     const copyCurlCommand = useCallback(async () => {
@@ -136,10 +153,10 @@ export default function QueryRunner({ server, initialQuery = '', referenceQuery,
                 errorMessage={errorMark?.message}
             />
             <div className='mt-3 flex flex-wrap items-center gap-2'>
-                <button className='btn btn-primary btn-sm' onClick={run} disabled={running}>
+                <button type='button' className='btn btn-primary btn-sm' onClick={run} disabled={running}>
                     Run (Ctrl/Cmd+Enter)
                 </button>
-                <button className='btn btn-ghost btn-sm' onClick={toggleCurlCommand}>
+                <button type='button' className='btn btn-ghost btn-sm' onClick={toggleCurlCommand}>
                     cURL
                 </button>
                 {running && (
@@ -155,7 +172,7 @@ export default function QueryRunner({ server, initialQuery = '', referenceQuery,
                     <pre className='min-w-0 flex-1 overflow-x-auto font-mono text-xs break-all whitespace-pre-wrap'>
                         {curlCommand}
                     </pre>
-                    <button className='btn shrink-0 btn-outline btn-xs' onClick={copyCurlCommand}>
+                    <button type='button' className='btn shrink-0 btn-outline btn-xs' onClick={copyCurlCommand}>
                         {curlCopied ? 'Copied' : 'Copy'}
                     </button>
                 </div>

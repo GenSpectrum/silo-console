@@ -13,8 +13,12 @@ export function buildConsoleShareUrl(currentUrl: string, server: string, query: 
     const url = new URL(currentUrl);
     url.search = '';
     url.hash = '';
+    url.hash = buildConsoleShareHash(server, query);
+    return url.toString();
+}
+
+export function buildConsoleShareHash(server: string, query: string) {
     const fragment = new URLSearchParams({ server });
     if (query.trim()) fragment.set('query', query);
-    url.hash = fragment.toString();
-    return url.toString();
+    return `#${fragment.toString()}`;
 }

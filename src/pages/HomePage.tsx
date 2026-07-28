@@ -1,11 +1,16 @@
 import { Link } from 'react-router-dom';
+import { sarsCov2PublicInstance } from '../data/publicInstances';
 import { usePageMeta } from '../lib/pageMeta';
+import { buildConsoleShareHash } from '../lib/serverUrl';
 
 const exampleQuery = `default
-  .filter(country = 'Switzerland')
-  .groupBy({count := count()}, {pangoLineage})
+  .filter(region = 'Europe')
+  .map({"S[69]" := S.at(69), "S[70]" := S.at(70), "S[501]" := S.at(501)})
+  .groupBy({count := count()}, {pangoLineage, "S[69]", "S[70]", "S[501]"})
   .orderBy({count.desc()})
   .limit(10)`;
+
+const exampleShareLink = `/console/${buildConsoleShareHash(sarsCov2PublicInstance.server, exampleQuery)}`;
 
 export default function HomePage() {
     usePageMeta();
@@ -42,6 +47,9 @@ export default function HomePage() {
                             <span className='size-2.5 rounded-full bg-warning' />
                             <span className='size-2.5 rounded-full bg-success' />
                             <span className='ml-2 text-xs text-neutral-content/55'>SILO query language</span>
+                            <Link className='hero-execute btn ml-auto btn-xs' to={exampleShareLink}>
+                                Execute
+                            </Link>
                         </div>
                         <pre className='overflow-x-auto p-5 text-sm leading-7 text-neutral-content'>
                             <code>{exampleQuery}</code>
@@ -58,7 +66,7 @@ export default function HomePage() {
                         records, or inspect changes relative to reference sequences.
                     </p>
                 </div>
-                <div className='mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+                <div className='mt-8 grid gap-4 md:grid-cols-3'>
                     <Capability title='Filter and retrieve'>
                         Select records by metadata, lineages, and sequence changes.
                     </Capability>
@@ -66,7 +74,6 @@ export default function HomePage() {
                     <Capability title='Query sequences'>
                         Query substitutions, deletions, insertions, mutation profiles, and reference positions.
                     </Capability>
-                    <Capability title='Use the API'>Receive results as NDJSON or Apache Arrow.</Capability>
                 </div>
             </section>
 
