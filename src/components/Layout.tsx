@@ -1,82 +1,104 @@
 import { type ReactNode, useEffect, useState } from 'react';
-import { useServer } from '../server/ServerContext';
-import Sidebar from './Sidebar';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import logoUrl from '../silo-logo-icon-only.png';
 
+const navigation = [
+    { to: '/', label: 'Home', end: true },
+    { to: '/docs', label: 'Documentation' },
+    { to: '/exercises', label: 'Exercises' },
+    { to: '/console', label: 'Console' },
+];
+
+function navClass({ isActive }: { isActive: boolean }) {
+    return isActive ? 'font-semibold text-primary' : '';
+}
+
 export default function Layout({ children }: { children: ReactNode }) {
-    const { server, setServer } = useServer();
     const [menuOpen, setMenuOpen] = useState(false);
+    const location = useLocation();
+
+    useEffect(() => setMenuOpen(false), [location.pathname]);
 
     useEffect(() => {
-        if (!menuOpen) return undefined;
-        const onKey = (event: KeyboardEvent) => event.key === 'Escape' && setMenuOpen(false);
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [menuOpen]);
+        if (location.hash) {
+            requestAnimationFrame(() => document.getElementById(location.hash.slice(1))?.scrollIntoView());
+            return;
+        }
+        window.scrollTo(0, 0);
+    }, [location.hash, location.pathname]);
 
     return (
-        <div className='drawer h-dvh lg:drawer-open'>
-            <input
-                id='app-drawer'
-                type='checkbox'
-                className='drawer-toggle'
-                checked={menuOpen}
-                onChange={(event) => setMenuOpen(event.target.checked)}
-            />
-            <div className='drawer-content flex min-h-0 flex-col'>
-                <header className='navbar min-h-15 flex-none border-b border-base-300 bg-base-100 px-3 lg:px-5'>
-                    <button
-                        type='button'
-                        className='btn mr-1 btn-square btn-ghost btn-sm lg:hidden'
-                        aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
-                        aria-expanded={menuOpen}
-                        aria-controls='sidebar-navigation'
-                        onClick={() => setMenuOpen((open) => !open)}
+        <div className='site-shell flex min-h-dvh flex-col bg-base-100'>
+            <header className='site-header sticky top-0 z-40 border-b border-base-300 bg-base-100/95 backdrop-blur'>
+                <div className='site-navbar navbar mx-auto min-h-16 w-full max-w-7xl px-4 lg:px-6'>
+                    <div className='navbar-start'>
+                        <Link className='site-brand flex items-center gap-2 hover:no-underline' to='/'>
+                            <img className='h-9 w-auto' src={logoUrl} alt='' aria-hidden='true' />
+                            <span className='text-xl font-bold tracking-wide'>SILO</span>
+                        </Link>
+                    </div>
+                    <nav className='site-nav navbar-center hidden lg:block' aria-label='Main navigation'>
+                        <ul className='menu menu-horizontal gap-1 px-1'>
+                            {navigation.map((item) => (
+                                <li key={item.to}>
+                                    <NavLink to={item.to} end={item.end} className={navClass}>
+                                        {item.label}
+                                    </NavLink>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                    <div className='navbar-end gap-2'>
+                        <a
+                            className='btn hidden btn-ghost btn-sm sm:inline-flex'
+                            href='https://github.com/GenSpectrum/LAPIS-SILO'
+                            target='_blank'
+                            rel='noreferrer'
+                        >
+                            GitHub
+                        </a>
+                        <button
+                            className='btn btn-square btn-ghost lg:hidden'
+                            type='button'
+                            aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
+                            aria-expanded={menuOpen}
+                            onClick={() => setMenuOpen((open) => !open)}
+                        >
+                            {menuOpen ? <CloseIcon /> : <MenuIcon />}
+                        </button>
+                    </div>
+                </div>
+                {menuOpen && (
+                    <nav
+                        className='border-t border-base-300 bg-base-100 px-4 py-2 lg:hidden'
+                        aria-label='Mobile navigation'
                     >
-                        {menuOpen ? <CloseIcon /> : <MenuIcon />}
-                    </button>
-                    <div className='flex shrink-0 items-center gap-2'>
-                        <img className='h-8 w-auto' src={logoUrl} alt='' aria-hidden='true' />
-                        <span className='text-lg font-bold tracking-wide'>SILO</span>
-                        <span className='hidden text-xs text-base-content/60 sm:inline'>genomic query console</span>
-                    </div>
-                    <div className='ml-auto flex min-w-0 flex-1 items-center justify-end gap-2 pl-3'>
-                        <label className='hidden text-xs text-base-content/60 sm:block' htmlFor='server'>
-                            Server
-                        </label>
-                        <input
-                            id='server'
-                            className='input w-full min-w-0 input-sm sm:max-w-md'
-                            type='url'
-                            value={server}
-                            spellCheck={false}
-                            aria-label='SILO server URL'
-                            placeholder='https://gs-staging-1.int.genspectrum.org/open/v2/silo'
-                            onChange={(event) => setServer(event.target.value)}
-                        />
-                    </div>
-                </header>
-                <main className='min-h-0 flex-1 overflow-y-auto p-4 lg:p-6'>{children}</main>
-            </div>
-            <div className='drawer-side z-50 lg:z-auto'>
-                <label htmlFor='app-drawer' aria-label='Close navigation' className='drawer-overlay' />
-                <Sidebar onNavigate={() => setMenuOpen(false)} />
-            </div>
+                        <ul className='menu w-full'>
+                            {navigation.map((item) => (
+                                <li key={item.to}>
+                                    <NavLink to={item.to} end={item.end} className={navClass}>
+                                        {item.label}
+                                    </NavLink>
+                                </li>
+                            ))}
+                            <li className='sm:hidden'>
+                                <a href='https://github.com/GenSpectrum/LAPIS-SILO' target='_blank' rel='noreferrer'>
+                                    GitHub
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                )}
+            </header>
+
+            <main className='site-content flex-1'>{children}</main>
         </div>
     );
 }
 
 function MenuIcon() {
     return (
-        <svg
-            viewBox='0 0 24 24'
-            width='22'
-            height='22'
-            fill='none'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-        >
+        <svg viewBox='0 0 24 24' width='22' height='22' fill='none' stroke='currentColor' strokeWidth='2'>
             <path d='M4 7h16M4 12h16M4 17h16' />
         </svg>
     );
@@ -84,15 +106,7 @@ function MenuIcon() {
 
 function CloseIcon() {
     return (
-        <svg
-            viewBox='0 0 24 24'
-            width='22'
-            height='22'
-            fill='none'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-        >
+        <svg viewBox='0 0 24 24' width='22' height='22' fill='none' stroke='currentColor' strokeWidth='2'>
             <path d='M6 6l12 12M18 6L6 18' />
         </svg>
     );

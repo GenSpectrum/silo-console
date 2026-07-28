@@ -84,11 +84,9 @@ export default function SequenceViewer({
 }) {
     useEffect(() => {
         if (!viewer) return undefined;
-        document.body.classList.add('viewer-open');
         const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
         window.addEventListener('keydown', onKey);
         return () => {
-            document.body.classList.remove('viewer-open');
             window.removeEventListener('keydown', onKey);
         };
     }, [viewer, onClose]);
@@ -106,7 +104,7 @@ export default function SequenceViewer({
                         {viewer.label ? `row ${viewer.label} · ` : ''}
                         {sequence.length.toLocaleString()} {sequenceUnit(sequence)}
                     </span>
-                    <button className='btn btn-outline btn-sm' onClick={onClose}>
+                    <button type='button' className='btn btn-outline btn-sm' onClick={onClose}>
                         Close
                     </button>
                 </div>
@@ -134,7 +132,7 @@ export default function SequenceViewer({
                 >
                     MSA viewer: Nightingale ↗
                 </a>
-                <button className='btn btn-outline btn-sm' onClick={onClose}>
+                <button type='button' className='btn btn-outline btn-sm' onClick={onClose}>
                     Close
                 </button>
             </div>
@@ -147,7 +145,7 @@ export default function SequenceViewer({
 
 function Overlay({ label, onClose, children }: { label: string; onClose: () => void; children: ReactNode }) {
     return createPortal(
-        <div className='modal-open modal' role='dialog' aria-modal='true' aria-label={label} onMouseDown={onClose}>
+        <div className='viewer-modal modal' role='dialog' aria-modal='true' aria-label={label} onMouseDown={onClose}>
             <div
                 className='modal-box flex max-h-[85vh] w-11/12 max-w-6xl flex-col overflow-hidden p-0'
                 onMouseDown={(event) => event.stopPropagation()}

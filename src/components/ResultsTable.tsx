@@ -140,6 +140,7 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
                                         <span className='min-w-0 flex-1 truncate'>{column}</span>
                                         {classified[column].isAligned && (
                                             <button
+                                                type='button'
                                                 className='shrink-0 link text-xs font-normal link-primary'
                                                 onClick={() => openAlignment(column)}
                                             >
@@ -207,7 +208,7 @@ function Cell({ value, isSequence, width, onView }: CellProps) {
                     <span className='shrink-0 text-[11px] whitespace-nowrap text-base-content/60'>
                         {value.length.toLocaleString()} {sequenceUnit(value)}
                     </span>
-                    <button className='shrink-0 link text-xs link-primary' onClick={onView}>
+                    <button type='button' className='shrink-0 link text-xs link-primary' onClick={onView}>
                         view
                     </button>
                 </div>

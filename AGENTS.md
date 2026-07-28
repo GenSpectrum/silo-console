@@ -22,19 +22,19 @@ preview port is 5001.
 
 - Routes live in `src/main.tsx` and are rendered through React Router `BrowserRouter`.
 - `scripts/postbuild.mjs` copies `dist/index.html` into real route directories so static hosts can
-  serve deep links without SPA fallback rules. When adding a top-level route, update `src/main.tsx`,
-  `src/components/Sidebar.tsx`, and the `routes` array in `scripts/postbuild.mjs`.
+  serve deep links without SPA fallback rules. Documentation routes are derived from
+  `src/data/docs.ts`; add other top-level routes to both `src/main.tsx` and `scripts/postbuild.mjs`.
 - Exercise routes are generated from `src/data/exercises.ts`; changing an exercise slug changes the
   generated static route.
 - `VITE_BASE` controls sub-path deployments, and `src/config.ts` derives the router basename from
   Vite's `BASE_URL`.
-- The default SILO server is `VITE_SILO_DEFAULT_SERVER`, falling back to
-  `https://gs-staging-1.int.genspectrum.org/open/v2/silo`.
+- `VITE_SILO_DEFAULT_SERVER` sets the Console's initial server. `VITE_SILO_EXERCISE_SERVER` is the
+  separate, non-editable exercise target. Both fall back to the GenSpectrum staging SILO.
 
 ## SILO Query Behavior
 
 - `silo-version.txt` records the SILO commit this app is currently optimized against. When updating it, review the language reference, editor highlighting, examples, and exercises against the matching SILO `documentation/query_documentation.md`.
-- `src/lib/runQuery.ts` sends plain-text SaneQL to `POST <server>/query` with
+- `src/lib/runQuery.ts` sends plain-text SILO queries to `POST <server>/query` with
   `Accept: application/x-ndjson`.
 - `runBounded()` appends `.limit(100)` unless the query already has a limit, and retries without the
   added limit only for SILO's unordered-output limit error.
@@ -46,7 +46,8 @@ preview port is 5001.
 
 ## Exercises
 
-- Exercises are `{ slug, title, question, answer }` objects in `src/data/exercises.ts`.
+- Exercises are `{ slug, title, question, explanation, documentation, answer }` objects in
+  `src/data/exercises.ts`.
 - The answer checker compares user rows to reference rows order-independently as a multiset.
 - Reference answers should be bounded, deterministic when possible, non-empty, and small enough for
   browser use. Validate changed answers against the default staging server.

@@ -1,5 +1,5 @@
 // After `vite build`, copy dist/index.html into a real folder per route so that
-// every URL (/console, /languageReference, /exercises/<slug>, ...) resolves to an
+// every URL (/docs/..., /console, /exercises/<slug>, ...) resolves to an
 // actual file. This makes direct loads and refreshes work on static hosts
 // (nginx, GitHub Pages) with no SPA-fallback configuration.
 import { copyFileSync, mkdirSync } from 'node:fs';
@@ -12,9 +12,10 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const dist = join(root, 'dist');
 const indexHtml = join(dist, 'index.html');
 const exercisesFile = join(root, 'src/data/exercises.ts');
+const docsFile = join(root, 'src/data/docs.ts');
 
-async function loadExercises() {
-    const source = await readFile(exercisesFile, 'utf8');
+async function loadTypeScriptModule(file) {
+    const source = await readFile(file, 'utf8');
     const { outputText } = ts.transpileModule(source, {
         compilerOptions: {
             module: ts.ModuleKind.ESNext,
@@ -22,11 +23,15 @@ async function loadExercises() {
         },
     });
     const encoded = Buffer.from(outputText).toString('base64');
-    return import(`data:text/javascript;base64,${encoded}`).then((module) => module.exercises);
+    return import(`data:text/javascript;base64,${encoded}`);
 }
 
-const exercises = await loadExercises();
-const routes = ['console', 'languageReference', 'exercises', ...exercises.map((e) => `exercises/${e.slug}`)];
+const { exercises } = await loadTypeScriptModule(exercisesFile);
+const { documentationSections } = await loadTypeScriptModule(docsFile);
+const docsRoutes = documentationSections.flatMap((section) =>
+    section.pages.map((page) => page.path.replace(/^\//, '')),
+);
+const routes = ['docs', ...docsRoutes, 'console', 'exercises', ...exercises.map((e) => `exercises/${e.slug}`)];
 
 for (const route of routes) {
     const dir = join(dist, route);

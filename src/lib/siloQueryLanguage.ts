@@ -1,9 +1,7 @@
-import { StreamLanguage, LanguageSupport, HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { HighlightStyle, LanguageSupport, StreamLanguage, syntaxHighlighting } from '@codemirror/language';
 import { tags as t } from '@lezer/highlight';
 
-// Pipeline operators and scalar functions from the SILO query documentation.
 const FUNCTIONS = new Set([
-    // pipeline operations
     'filter',
     'schema',
     'groupBy',
@@ -20,7 +18,6 @@ const FUNCTIONS = new Set([
     'aminoAcidInsertions',
     'mostRecentCommonAncestor',
     'phyloSubtree',
-    // scalar / filter functions
     'between',
     'at',
     'isoWeek',
@@ -41,7 +38,6 @@ const FUNCTIONS = new Set([
     'nOf',
     'nucleotideMutationProfile',
     'aminoAcidMutationProfile',
-    // helpers
     'count',
     'asc',
     'desc',
@@ -49,8 +45,6 @@ const FUNCTIONS = new Set([
 
 const KEYWORDS = new Set(['default', 'true', 'false', 'null']);
 
-// Maps the token names returned by token() below to lezer highlight tags.
-// "function" is not a standard stream-token name, so an explicit table is needed.
 const tagMap = {
     comment: t.comment,
     string: t.string,
@@ -61,9 +55,8 @@ const tagMap = {
     variableName: t.variableName,
 };
 
-const saneqlParser = StreamLanguage.define({
+const parser = StreamLanguage.define({
     tokenTable: tagMap,
-    // SaneQL uses `--` for line comments; this lets toggleLineComment work.
     languageData: { commentTokens: { line: '--' } },
     token(stream) {
         if (stream.eatSpace()) return null;
@@ -84,9 +77,7 @@ const saneqlParser = StreamLanguage.define({
             return 'string';
         }
 
-        if (stream.match(/^\d+(\.\d+)?/)) {
-            return 'number';
-        }
+        if (stream.match(/^\d+(\.\d+)?/)) return 'number';
 
         if (stream.match(':=') || stream.match('::') || stream.match(/^(&&|\|\||<=|>=|<>|[=<>!])/)) {
             return 'operator';
@@ -115,7 +106,6 @@ const highlightStyle = HighlightStyle.define([
     { tag: t.variableName, color: '#1d1d1f' },
 ]);
 
-// Provide an explicit HighlightStyle so colours are consistent regardless of theme.
-export function saneql() {
-    return new LanguageSupport(saneqlParser, [syntaxHighlighting(highlightStyle)]);
+export function siloQueryLanguage() {
+    return new LanguageSupport(parser, [syntaxHighlighting(highlightStyle)]);
 }

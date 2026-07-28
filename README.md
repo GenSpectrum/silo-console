@@ -1,100 +1,65 @@
-# SILO Web Client
+# SILO website
 
-A small, fully client-side web app for querying and learning SILO. It is a static
-React + TypeScript (Vite) application — it can be served by any static host
-(nginx, GitHub Pages, …) with no backend of its own.
+The public homepage, documentation, exercises, and browser-based query Console for [SILO](https://github.com/GenSpectrum/LAPIS-SILO). The site is a fully client-side React and TypeScript application built with Vite, Tailwind CSS, and daisyUI. It can be hosted as static files and has no backend of its own.
 
-Pages (left sidebar):
+## Site areas
 
-- **`/console`** — interactive query console: write a SaneQL query and run it
-  against a SILO server. Long genomic sequences are collapsed to a preview; a
-  `view` opens them in a sequence viewer, and aligned columns can be opened as a
-  multi-row alignment (position ruler, base coloring, mismatch highlighting).
-- **`/languageReference`** — a concise reference for the SILO query language.
-- **`/exercises`**, **`/exercises/:slug`** — practice questions; your result is
-  compared against a hidden reference answer for a Correct!/Wrong! verdict.
+- `/` introduces SILO, its use cases, and the available learning and query tools.
+- `/docs` explains SILO's data and query model and provides the query-language and HTTP API references.
+- `/exercises` teaches the query language through tasks on a fixed SARS-CoV-2 staging dataset. Exercise and reference queries always use the configured exercise server.
+- `/console` connects to a listed public SILO instance or a browser-accessible custom URL, displays `/info` and `default.schema()`, runs queries, and renders the results.
 
-## How results are interpreted
-
-SILO's `/query` endpoint returns rows without a schema, so the client infers a few things from the
-result data itself. These behaviors are intentional but worth knowing, since they are not configured
-per column:
-
-- **Sequence columns** — a column is treated as a genomic sequence (collapsed to a preview with a
-  `view` action) when all its non-null values are uppercase IUPAC symbols (nucleotide/amino acid)
-  plus gap/stop and the longest value is ≥ 40 characters.
-- **Alignments** — a sequence column offers the `align` action only when all its non-null values
-  share the same length.
-- **Nucleotide vs amino acid** — inferred from the alphabet; controls the `nt`/`aa` length label, the
-  MSA color scheme (`nucleotide` vs `clustal`), and whether base coloring is applied.
-- **Row labels** — sequence and alignment rows are labelled by their 1-based row number, matching the
-  results table's `#` column (no identifier column is guessed).
-- **Column width** — each column is sized to fit its header on one line, with a 150px minimum. Cells
-  stay on a single line and truncate with an ellipsis; content that doesn't fit can be expanded —
-  strings with a more/less toggle, sequences with the `view` button.
-- **Automatic `.limit(100)`** — appended to every query that does not already contain a `.limit(...)`
-  (detected by a text scan that ignores `--` comments and string literals). If the server rejects the
-  limit because the output is unordered/aggregated, the query is retried once without it.
-- **Display caps** — the alignment view renders at most the first 200 rows and opens on the first 60
-  columns (zoom/pan with the ruler); per-base coloring is skipped for very large sequences.
+The Console sends requests directly from the visitor's browser. The target SILO instance must be reachable from that browser and allow the site's origin through its CORS policy. The site does not collect credentials or proxy requests. Shared Console links store the server and query in the URL fragment, which is not sent to the static site host.
 
 ## Development
 
 ```sh
 npm install
 npm run dev          # http://localhost:5001
-npm run typecheck    # TypeScript
-npm test             # run unit tests (Vitest)
-npm run format       # format with Prettier (check-format to verify)
+npm run typecheck
+npm test
+npm run check-format
+npm run build
 ```
 
-## Production build
+Run `npm run format` before committing formatting-sensitive changes.
 
-```sh
-npm run build        # outputs static files to dist/
-npm run serve        # preview the build on http://localhost:5001
-```
+`npm run build` typechecks the application, builds it into `dist/`, and creates a real `index.html` for every route. This allows direct loads and browser refreshes on static hosts without SPA fallback rules.
 
-`npm run build` runs the TypeScript checker, `vite build`, and then a post-build step
-(`scripts/postbuild.mjs`) that copies `dist/index.html` into a real folder for
-every route (`dist/console/index.html`, `dist/exercises/<slug>/index.html`, …).
-This makes deep links and refreshes work on static hosts without any SPA-fallback
-configuration.
+## Configuration
 
-## Configuration (environment variables)
+Vite reads these variables at build time:
 
-These are read at **build time** (the app is static, so the value is baked into
-the bundle).
-
-| Variable                   | Default                                                 | Purpose                                                                                                           |
-| -------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `VITE_SILO_DEFAULT_SERVER` | `https://gs-staging-1.int.genspectrum.org/open/v2/silo` | Default SILO server URL shown in the header. Users can still override it in the UI (persisted in `localStorage`). |
-| `VITE_BASE`                | `/`                                                     | Public base path. Set to e.g. `/silo-console/` when deploying under a sub-path (GitHub Pages project sites).      |
+| Variable                    | Default                  | Purpose                                                                             |
+| --------------------------- | ------------------------ | ----------------------------------------------------------------------------------- |
+| `VITE_SILO_DEFAULT_SERVER`  | GenSpectrum staging SILO | Initial server shown by the Console. Visitors may connect another instance.         |
+| `VITE_SILO_EXERCISE_SERVER` | GenSpectrum staging SILO | Fixed server used by exercises and reference answers. It is not editable in the UI. |
+| `VITE_BASE`                 | `/`                      | Public base path, such as `/silo-console/` for a GitHub Pages project site.         |
 
 Example:
 
 ```sh
-VITE_SILO_DEFAULT_SERVER=https://my-silo.example.org/api npm run build
+VITE_SILO_DEFAULT_SERVER=https://silo.example.org npm run build
 ```
+
+## Query results
+
+The Console requests NDJSON and infers a few presentation details from the returned values:
+
+- Uppercase biological strings of at least 40 characters are displayed as sequences.
+- Equally sized aligned sequence values can be opened together in the alignment viewer.
+- Queries without a top-level `.limit(...)` are bounded to 100 rows for interactive use. If SILO rejects that limit for an unordered aggregate, the Console retries the original query.
+- Long values are collapsed in the result table and can be expanded on demand.
+
+## SILO compatibility
+
+`silo-version.txt` records the SILO commit against which the language reference, syntax highlighting, examples, and exercises were checked. When updating it, compare the site with SILO's `documentation/query_documentation.md` and validate exercise answers against the configured staging server.
 
 ## Docker
 
-A simple multi-stage image builds the app and serves it with nginx on port 5001.
+The multi-stage image builds the static site and serves it with nginx on port 5001.
 
 ```sh
-docker build -t silo-web .
-docker run -p 5001:5001 silo-web
-# override the default server:
-docker build --build-arg VITE_SILO_DEFAULT_SERVER=https://my-silo/api -t silo-web .
+docker build -t silo-website .
+docker run -p 5001:5001 silo-website
 ```
-
-## Deployment (GitHub Pages)
-
-Only the source is committed; GitHub Actions builds and deploys it. `.github/workflows/deploy.yml`
-builds on every push to `main` with `VITE_BASE=/silo-console/` and publishes `dist/` to GitHub
-Pages, so the site is served at `https://<owner>.github.io/silo-console/`. `.github/workflows/ci.yml`
-checks formatting, runs the tests, and builds on every push and pull request.
-
-To point the deployed site at a different SILO server, set a repository **variable**
-`VITE_SILO_DEFAULT_SERVER` (Settings → Secrets and variables → Actions → Variables). The SILO server
-must allow CORS requests from the Pages origin. Users can also override the server in the header.

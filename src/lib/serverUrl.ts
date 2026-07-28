@@ -1,0 +1,20 @@
+export function normalizeServerUrl(value: string) {
+    const trimmed = value.trim().replace(/\/+$/, '');
+    const url = new URL(trimmed);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        throw new Error('The server URL must use HTTP or HTTPS.');
+    }
+    url.hash = '';
+    url.search = '';
+    return url.toString().replace(/\/+$/, '');
+}
+
+export function buildConsoleShareUrl(currentUrl: string, server: string, query: string) {
+    const url = new URL(currentUrl);
+    url.search = '';
+    url.hash = '';
+    const fragment = new URLSearchParams({ server });
+    if (query.trim()) fragment.set('query', query);
+    url.hash = fragment.toString();
+    return url.toString();
+}

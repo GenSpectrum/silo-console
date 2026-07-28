@@ -9,7 +9,7 @@ function errorMessage(err: unknown) {
     return err instanceof Error ? err.message : String(err);
 }
 
-// Sends a SaneQL query to <base>/query and parses the NDJSON response. Returns
+// Sends a SILO query to <base>/query and parses the NDJSON response. Returns
 // { rows, dataVersion, executionMs, downloadMs, elapsedMs } on success — executionMs is the wait
 // until response headers arrive, downloadMs is the time to read the body, elapsedMs their sum.
 // Throws an Error whose message is a human-readable description on failure;

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useServer } from '../server/ServerContext';
 import { runBounded } from '../lib/runQuery';
 import { resultsMatch } from '../lib/compareResults';
 import { celebrate } from '../lib/celebrate';
@@ -40,15 +39,16 @@ type ErrorMark = {
 };
 
 type QueryRunnerProps = {
+    server: string;
     initialQuery?: string;
     referenceQuery?: string;
+    onQueryChange?: (query: string) => void;
 };
 
 // Reusable query widget: editor + Run button + status/meta/error + results table.
 // When `referenceQuery` is provided (exercise mode), the user's result is
 // compared against the reference answer and a Correct!/Wrong! verdict is shown.
-export default function QueryRunner({ initialQuery = '', referenceQuery }: QueryRunnerProps) {
-    const { getBase } = useServer();
+export default function QueryRunner({ server, initialQuery = '', referenceQuery, onQueryChange }: QueryRunnerProps) {
     const [query, setQuery] = useState(initialQuery);
     const [running, setRunning] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -58,11 +58,15 @@ export default function QueryRunner({ initialQuery = '', referenceQuery }: Query
     const [showCurl, setShowCurl] = useState(false);
     const [curlCopied, setCurlCopied] = useState(false);
 
-    const handleChange = useCallback((value: string) => {
-        setQuery(value);
-        setErrorMark(null);
-        setCurlCopied(false);
-    }, []);
+    const handleChange = useCallback(
+        (value: string) => {
+            setQuery(value);
+            setErrorMark(null);
+            setCurlCopied(false);
+            onQueryChange?.(value);
+        },
+        [onQueryChange],
+    );
 
     useEffect(() => {
         if (verdict?.status === 'correct') celebrate();
@@ -77,13 +81,12 @@ export default function QueryRunner({ initialQuery = '', referenceQuery }: Query
 
         setRunning(true);
         try {
-            const base = getBase();
-            const res = await runBounded(base, query);
+            const res = await runBounded(server, query);
             setResult(res);
 
             if (referenceQuery) {
                 try {
-                    const referenceRows = await getReferenceRows(base, referenceQuery);
+                    const referenceRows = await getReferenceRows(server, referenceQuery);
                     setVerdict(
                         resultsMatch(res.rows, referenceRows)
                             ? { status: 'correct', message: 'Correct!' }
@@ -104,9 +107,9 @@ export default function QueryRunner({ initialQuery = '', referenceQuery }: Query
         } finally {
             setRunning(false);
         }
-    }, [query, referenceQuery, getBase]);
+    }, [query, referenceQuery, server]);
 
-    const curlCommand = buildCurlCommand(getBase(), query);
+    const curlCommand = buildCurlCommand(server, query);
 
     const copyCurlCommand = useCallback(async () => {
         try {
