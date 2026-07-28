@@ -123,8 +123,8 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
 
     return (
         <>
-            <div className='table-wrap'>
-                <table style={{ width: tableWidth }}>
+            <div className='mt-3 max-w-full overflow-auto rounded-box border border-base-300'>
+                <table className='table-pin-rows table table-fixed table-xs font-mono' style={{ width: tableWidth }}>
                     <colgroup>
                         <col style={{ width: ROW_NUM_WIDTH }} />
                         {columns.map((column, i) => (
@@ -133,13 +133,16 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
                     </colgroup>
                     <thead>
                         <tr>
-                            <th className='row-num'>#</th>
+                            <th className='bg-base-200 text-right font-sans text-base-content/60 select-none'>#</th>
                             {columns.map((column, i) => (
-                                <th key={column} className='resizable-th'>
-                                    <div className='cell'>
-                                        <span className='trunc'>{column}</span>
+                                <th key={column} className='relative bg-base-200 font-sans'>
+                                    <div className='flex items-baseline gap-1.5'>
+                                        <span className='min-w-0 flex-1 truncate'>{column}</span>
                                         {classified[column].isAligned && (
-                                            <button className='link-btn' onClick={() => openAlignment(column)}>
+                                            <button
+                                                className='shrink-0 link text-xs font-normal link-primary'
+                                                onClick={() => openAlignment(column)}
+                                            >
                                                 align
                                             </button>
                                         )}
@@ -157,8 +160,8 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
                     </thead>
                     <tbody>
                         {data.map((row, index) => (
-                            <tr key={index}>
-                                <td className='row-num'>{index + 1}</td>
+                            <tr className='border-b border-base-300 last:border-b-0 hover:bg-base-200/50' key={index}>
+                                <td className='text-right text-base-content/60 select-none'>{index + 1}</td>
                                 {columns.map((column, i) => (
                                     <Cell
                                         key={column}
@@ -186,12 +189,12 @@ type CellProps = {
 };
 
 function Cell({ value, isSequence, width, onView }: CellProps) {
-    if (value === null || value === undefined) return <td className='null-value' />;
+    if (value === null || value === undefined) return <td className='text-base-content/35' />;
     if (typeof value === 'object') {
         return (
             <td>
-                <div className='cell'>
-                    <span className='trunc'>{JSON.stringify(value)}</span>
+                <div className='flex items-baseline gap-1.5'>
+                    <span className='min-w-0 flex-1 truncate'>{JSON.stringify(value)}</span>
                 </div>
             </td>
         );
@@ -199,12 +202,12 @@ function Cell({ value, isSequence, width, onView }: CellProps) {
     if (isSequence && typeof value === 'string') {
         return (
             <td>
-                <div className='cell'>
-                    <span className='trunc'>{value.slice(0, SEQUENCE_PREVIEW_CHARS)}</span>
-                    <span className='seq-meta'>
+                <div className='flex items-baseline gap-1.5'>
+                    <span className='min-w-0 flex-1 truncate'>{value.slice(0, SEQUENCE_PREVIEW_CHARS)}</span>
+                    <span className='shrink-0 text-[11px] whitespace-nowrap text-base-content/60'>
                         {value.length.toLocaleString()} {sequenceUnit(value)}
                     </span>
-                    <button className='link-btn' onClick={onView}>
+                    <button className='shrink-0 link text-xs link-primary' onClick={onView}>
                         view
                     </button>
                 </div>
@@ -222,8 +225,8 @@ function Cell({ value, isSequence, width, onView }: CellProps) {
     }
     return (
         <td>
-            <div className='cell'>
-                <span className='trunc'>{text}</span>
+            <div className='flex items-baseline gap-1.5'>
+                <span className='min-w-0 flex-1 truncate'>{text}</span>
             </div>
         </td>
     );
@@ -232,9 +235,17 @@ function Cell({ value, isSequence, width, onView }: CellProps) {
 function ExpandableText({ value }: { value: string }) {
     const [expanded, setExpanded] = useState(false);
     return (
-        <div className={expanded ? 'cell expanded' : 'cell'}>
-            <span className='trunc'>{value}</span>
-            <button className='link-btn' onClick={() => setExpanded((prev) => !prev)}>
+        <div className='flex items-baseline gap-1.5'>
+            <span
+                className={
+                    expanded
+                        ? 'min-w-0 flex-1 overflow-visible break-words whitespace-pre-wrap'
+                        : 'min-w-0 flex-1 truncate'
+                }
+            >
+                {value}
+            </span>
+            <button className='shrink-0 link text-xs link-primary' onClick={() => setExpanded((prev) => !prev)}>
                 {expanded ? 'less' : 'more'}
             </button>
         </div>

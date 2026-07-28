@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 function Code({ children }: { children: ReactNode }) {
     return (
-        <pre>
+        <pre className='my-3 overflow-x-auto rounded-box border border-base-300 bg-base-200 p-3 font-mono text-xs'>
             <code>{children}</code>
         </pre>
     );
@@ -11,9 +11,9 @@ function Code({ children }: { children: ReactNode }) {
 
 export default function LanguageReferencePage() {
     return (
-        <div className='page'>
-            <h2>Language Reference</h2>
-            <p>
+        <div className='w-full max-w-5xl text-sm leading-relaxed [&_a]:link [&_a]:link-primary'>
+            <h1 className='text-2xl font-semibold tracking-tight'>Language Reference</h1>
+            <p className='mt-2'>
                 Queries are sent to the <code>/query</code> endpoint as a plain-text{' '}
                 <a href='https://www.cidrdb.org/cidr2024/papers/p48-neumann.pdf' target='_blank' rel='noreferrer'>
                     SaneQL
@@ -22,7 +22,7 @@ export default function LanguageReferencePage() {
                 client sends <code>Accept: application/vnd.apache.arrow.stream</code>.
             </p>
 
-            <h2>Query structure</h2>
+            <h2 className='mt-8 mb-3 text-xl font-semibold'>Query structure</h2>
             <p>
                 A query is a <strong>pipeline</strong> of operators chained with <code>.method()</code> syntax, starting
                 from a table name (currently always <code>default</code>). Every operator takes a table and produces a
@@ -31,7 +31,7 @@ export default function LanguageReferencePage() {
             <Code>{`default
   .filter(country = 'Switzerland')
   .groupBy({count:=count()})`}</Code>
-            <ul>
+            <ul className='list-disc space-y-1 pl-5'>
                 <li>
                     <strong>Schema-preserving</strong> operators (<code>filter</code>, <code>orderBy</code>,{' '}
                     <code>limit</code>, <code>offset</code>, <code>randomize</code>) pass all columns through unchanged.
@@ -43,86 +43,88 @@ export default function LanguageReferencePage() {
                 </li>
             </ul>
 
-            <h2>Literals</h2>
-            <table className='ref'>
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Syntax</th>
-                        <th>Example</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>String</td>
-                        <td>single-quoted</td>
-                        <td>
-                            <code>'Switzerland'</code>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Integer</td>
-                        <td>bare number</td>
-                        <td>
-                            <code>42</code>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Float</td>
-                        <td>decimal</td>
-                        <td>
-                            <code>3.14</code>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Boolean</td>
-                        <td>
-                            <code>true</code> / <code>false</code>
-                        </td>
-                        <td>
-                            <code>true</code>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Null</td>
-                        <td>
-                            <code>null</code>
-                        </td>
-                        <td>
-                            <code>null</code>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Date</td>
-                        <td>
-                            <code>'YYYY-MM-DD'::date</code>
-                        </td>
-                        <td>
-                            <code>'2021-03-15'::date</code>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Set</td>
-                        <td>
-                            <code>{`{elem1, elem2, ...}`}</code>
-                        </td>
-                        <td>
-                            <code>{`{'A', 'B', 'C'}`}</code>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Record</td>
-                        <td>
-                            <code>{`{field := value, ...}`}</code>
-                        </td>
-                        <td>
-                            <code>{`{x := 'A', y := 3}`}</code>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <h2 className='mt-8 mb-3 text-xl font-semibold'>Literals</h2>
+            <div className='w-fit max-w-full overflow-x-auto rounded-box border border-base-300'>
+                <table className='table w-auto table-xs'>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Syntax</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>String</td>
+                            <td>single-quoted</td>
+                            <td>
+                                <code>'Switzerland'</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Integer</td>
+                            <td>bare number</td>
+                            <td>
+                                <code>42</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Float</td>
+                            <td>decimal</td>
+                            <td>
+                                <code>3.14</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Boolean</td>
+                            <td>
+                                <code>true</code> / <code>false</code>
+                            </td>
+                            <td>
+                                <code>true</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Null</td>
+                            <td>
+                                <code>null</code>
+                            </td>
+                            <td>
+                                <code>null</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Date</td>
+                            <td>
+                                <code>'YYYY-MM-DD'::date</code>
+                            </td>
+                            <td>
+                                <code>'2021-03-15'::date</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Set</td>
+                            <td>
+                                <code>{`{elem1, elem2, ...}`}</code>
+                            </td>
+                            <td>
+                                <code>{`{'A', 'B', 'C'}`}</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Record</td>
+                            <td>
+                                <code>{`{field := value, ...}`}</code>
+                            </td>
+                            <td>
+                                <code>{`{x := 'A', y := 3}`}</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-            <h2>Operators &amp; method calls</h2>
+            <h2 className='mt-8 mb-3 text-xl font-semibold'>Operators &amp; method calls</h2>
             <p>
                 Any function <code>f(table, arg)</code> can be written as <code>table.f(arg)</code>. Named arguments use{' '}
                 <code>:=</code>; once a named argument is given, no positional arguments follow.
@@ -138,7 +140,7 @@ export default function LanguageReferencePage() {
 age > 30
 date <= '2021-12-31'::date`}</Code>
 
-            <h2>Pipeline operations</h2>
+            <h2 className='mt-8 mb-3 text-xl font-semibold'>Pipeline operations</h2>
             <Ref name='filter(predicate)' desc='Keep rows where the boolean predicate is true.'>
                 {`default.filter(country = 'USA' && age > 30)`}
             </Ref>
@@ -225,7 +227,7 @@ default.groupBy({count:=count()}, {country}).schema()`}
                 {`default.filter(pango_lineage = 'B.1.1.7').phyloSubtree('usherTree')`}
             </Ref>
 
-            <h2>Scalar functions</h2>
+            <h2 className='mt-8 mb-3 text-xl font-semibold'>Scalar functions</h2>
             <p>
                 Most scalar functions are boolean predicates for <code>filter</code>. Non-boolean scalar functions such
                 as <code>at</code> and <code>isoWeek</code> return values for <code>map</code> assignments.
@@ -265,7 +267,7 @@ isNotNull(pango_lineage)`}
             <Ref name='phyloDescendantOf(column, node)' desc='True if the tree column value descends from node.'>
                 {`usherTree.phyloDescendantOf('NODE_0000072')`}
             </Ref>
-            <p className='hint'>
+            <p className='text-xs text-base-content/60'>
                 Every nucleotide and amino acid filter or mutation profile requires an explicit sequenceName.
             </p>
             <Ref
@@ -318,7 +320,7 @@ isNotNull(pango_lineage)`}
 })`}
             </Ref>
 
-            <p className='hint' style={{ marginTop: 24 }}>
+            <p className='mt-6 text-xs text-base-content/60'>
                 This is a condensed reference. See{' '}
                 <a
                     href='https://github.com/GenSpectrum/LAPIS-SILO/blob/main/documentation/query_documentation.md'
@@ -335,14 +337,12 @@ isNotNull(pango_lineage)`}
 
 function Ref({ name, desc, children }: { name: string; desc: string; children: ReactNode }) {
     return (
-        <div style={{ marginBottom: 16 }}>
-            <h3 style={{ margin: '0 0 4px', fontSize: 15 }}>
+        <div className='mb-4'>
+            <h3 className='mb-1 text-sm font-semibold'>
                 <code>{name}</code>
             </h3>
-            <div className='hint' style={{ marginBottom: 6 }}>
-                {desc}
-            </div>
-            <pre>
+            <div className='mb-1.5 text-xs text-base-content/60'>{desc}</div>
+            <pre className='overflow-x-auto rounded-box border border-base-300 bg-base-200 p-3 font-mono text-xs'>
                 <code>{children}</code>
             </pre>
         </div>

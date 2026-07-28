@@ -36,9 +36,9 @@ function renderColored(sequence: string, colorize: boolean): ReactNode {
 
 function BaseLegend() {
     return (
-        <div className='seq-legend'>
+        <div className='flex gap-1.5 border-b border-base-300 px-4 py-2 font-mono text-xs'>
             {BASES.map((b) => (
-                <span key={b} className={baseColorClass(b)}>
+                <span key={b} className={`badge badge-ghost badge-sm ${baseColorClass(b) ?? ''}`}>
                     {b === '-' ? 'gap' : b}
                 </span>
             ))}
@@ -59,15 +59,18 @@ function WrappedSequence({ sequence, colorize }: { sequence: string; colorize: b
             blocks.push(<span key={i}>{renderColored(text.slice(i, i + GROUP), colorize)}</span>);
         }
         lines.push(
-            <div className='seq-wrap-line' key={start}>
-                <span className='seq-pos' style={{ width: `${posWidth}ch` }}>
+            <div className='flex' key={start}>
+                <span
+                    className='mr-[1.5ch] shrink-0 text-right text-base-content/60 select-none'
+                    style={{ width: `${posWidth}ch` }}
+                >
                     {start + 1}
                 </span>
-                <span className='seq-bases'>{blocks}</span>
+                <span className='whitespace-pre'>{blocks}</span>
             </div>,
         );
     }
-    return <div className='seq-wrap'>{lines}</div>;
+    return <div className='font-mono text-xs leading-relaxed'>{lines}</div>;
 }
 
 // Modal overlay showing one sequence (wrapped, GenBank-style) or an aligned column across rows
@@ -96,19 +99,19 @@ export default function SequenceViewer({
         const { sequence } = viewer;
         const colorize = sequenceUnit(sequence) === 'nt' && sequence.length <= MAX_COLOR_CELLS;
         return (
-            <Overlay onClose={onClose}>
-                <div className='seq-head'>
-                    <strong>{viewer.title}</strong>
-                    <span className='hint'>
+            <Overlay label={`${viewer.title} sequence viewer`} onClose={onClose}>
+                <div className='flex flex-wrap items-center gap-3 border-b border-base-300 px-4 py-3'>
+                    <strong className='text-sm'>{viewer.title}</strong>
+                    <span className='mr-auto text-xs text-base-content/60'>
                         {viewer.label ? `row ${viewer.label} · ` : ''}
                         {sequence.length.toLocaleString()} {sequenceUnit(sequence)}
                     </span>
-                    <button className='secondary' onClick={onClose}>
+                    <button className='btn btn-outline btn-sm' onClick={onClose}>
                         Close
                     </button>
                 </div>
                 {colorize && <BaseLegend />}
-                <div className='seq-scroll'>
+                <div className='overflow-auto px-4 py-3'>
                     <WrappedSequence sequence={sequence} colorize={colorize} />
                 </div>
             </Overlay>
@@ -117,35 +120,38 @@ export default function SequenceViewer({
 
     const length = viewer.entries.reduce((max, entry) => Math.max(max, entry.sequence.length), 0);
     return (
-        <Overlay onClose={onClose}>
-            <div className='seq-head'>
-                <strong>{viewer.title}</strong>
-                <span className='hint'>
+        <Overlay label={`${viewer.title} alignment viewer`} onClose={onClose}>
+            <div className='flex flex-wrap items-center gap-3 border-b border-base-300 px-4 py-3'>
+                <strong className='text-sm'>{viewer.title}</strong>
+                <span className='mr-auto text-xs text-base-content/60'>
                     {viewer.entries.length} rows · {length.toLocaleString()} positions · drag the ruler to zoom
                 </span>
                 <a
-                    className='msa-credit'
+                    className='link text-xs link-primary'
                     href='https://github.com/ebi-webcomponents/nightingale'
                     target='_blank'
                     rel='noreferrer'
                 >
                     MSA viewer: Nightingale ↗
                 </a>
-                <button className='secondary' onClick={onClose}>
+                <button className='btn btn-outline btn-sm' onClick={onClose}>
                     Close
                 </button>
             </div>
-            <div className='seq-scroll'>
+            <div className='overflow-auto px-4 py-3'>
                 <MsaView entries={viewer.entries} />
             </div>
         </Overlay>
     );
 }
 
-function Overlay({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+function Overlay({ label, onClose, children }: { label: string; onClose: () => void; children: ReactNode }) {
     return createPortal(
-        <div className='seq-overlay' onMouseDown={onClose}>
-            <div className='seq-panel' onMouseDown={(event) => event.stopPropagation()}>
+        <div className='modal-open modal' role='dialog' aria-modal='true' aria-label={label} onMouseDown={onClose}>
+            <div
+                className='modal-box flex max-h-[85vh] w-11/12 max-w-6xl flex-col overflow-hidden p-0'
+                onMouseDown={(event) => event.stopPropagation()}
+            >
                 {children}
             </div>
         </div>,

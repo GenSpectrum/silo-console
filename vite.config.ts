@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 
 // `base` lets the app be served from a sub-path (e.g. GitHub Pages project sites).
@@ -7,7 +8,7 @@ const base = process.env.VITE_BASE || '/';
 
 export default defineConfig({
     base,
-    plugins: [react()],
+    plugins: [tailwindcss(), react()],
     server: {
         port: 5001,
         host: true,

@@ -61,7 +61,13 @@ export default function QueryEditor({
     }, [errorPosition, errorMessage]);
 
     return (
-        <div className={'editor-wrap' + (status === 'correct' ? ' correct' : '')}>
+        <div
+            className={
+                status === 'correct'
+                    ? 'overflow-hidden rounded-field border border-success ring-1 ring-success'
+                    : 'overflow-hidden rounded-field border border-base-300'
+            }
+        >
             <CodeMirror
                 value={value}
                 onChange={onChange}

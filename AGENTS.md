@@ -1,8 +1,8 @@
 # Agent Notes
 
 This is a public, fully client-side SILO query and learning app built with Vite, React, TypeScript,
-and plain CSS. Keep the setup simple and static-host friendly; do not introduce a backend or a heavier
-framework unless explicitly requested.
+Tailwind CSS, and daisyUI. Keep the setup simple and static-host friendly; do not introduce a backend
+or a heavier framework unless explicitly requested.
 
 ## Commands
 

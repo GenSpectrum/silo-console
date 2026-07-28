@@ -15,34 +15,52 @@ export default function Layout({ children }: { children: ReactNode }) {
     }, [menuOpen]);
 
     return (
-        <div className='app-shell'>
-            <header className='app-header'>
-                <button
-                    className='menu-toggle'
-                    aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
-                    aria-expanded={menuOpen}
-                    onClick={() => setMenuOpen((open) => !open)}
-                >
-                    {menuOpen ? <CloseIcon /> : <MenuIcon />}
-                </button>
-                <div className='brand'>
-                    <img className='brand-logo' src={logoUrl} alt='' aria-hidden='true' />
-                    <span className='brand-name'>SILO</span>
-                    <span className='brand-sub'>genomic query console</span>
-                </div>
-                <label htmlFor='server'>Server:</label>
-                <input
-                    id='server'
-                    type='url'
-                    value={server}
-                    spellCheck={false}
-                    placeholder='https://gs-staging-1.int.genspectrum.org/open/v2/silo'
-                    onChange={(e) => setServer(e.target.value)}
-                />
-            </header>
-            <div className='app-body'>
-                <Sidebar open={menuOpen} onNavigate={() => setMenuOpen(false)} />
-                <main className='content'>{children}</main>
+        <div className='drawer h-dvh lg:drawer-open'>
+            <input
+                id='app-drawer'
+                type='checkbox'
+                className='drawer-toggle'
+                checked={menuOpen}
+                onChange={(event) => setMenuOpen(event.target.checked)}
+            />
+            <div className='drawer-content flex min-h-0 flex-col'>
+                <header className='navbar min-h-15 flex-none border-b border-base-300 bg-base-100 px-3 lg:px-5'>
+                    <button
+                        type='button'
+                        className='btn mr-1 btn-square btn-ghost btn-sm lg:hidden'
+                        aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
+                        aria-expanded={menuOpen}
+                        aria-controls='sidebar-navigation'
+                        onClick={() => setMenuOpen((open) => !open)}
+                    >
+                        {menuOpen ? <CloseIcon /> : <MenuIcon />}
+                    </button>
+                    <div className='flex shrink-0 items-center gap-2'>
+                        <img className='h-8 w-auto' src={logoUrl} alt='' aria-hidden='true' />
+                        <span className='text-lg font-bold tracking-wide'>SILO</span>
+                        <span className='hidden text-xs text-base-content/60 sm:inline'>genomic query console</span>
+                    </div>
+                    <div className='ml-auto flex min-w-0 flex-1 items-center justify-end gap-2 pl-3'>
+                        <label className='hidden text-xs text-base-content/60 sm:block' htmlFor='server'>
+                            Server
+                        </label>
+                        <input
+                            id='server'
+                            className='input w-full min-w-0 input-sm sm:max-w-md'
+                            type='url'
+                            value={server}
+                            spellCheck={false}
+                            aria-label='SILO server URL'
+                            placeholder='https://gs-staging-1.int.genspectrum.org/open/v2/silo'
+                            onChange={(event) => setServer(event.target.value)}
+                        />
+                    </div>
+                </header>
+                <main className='min-h-0 flex-1 overflow-y-auto p-4 lg:p-6'>{children}</main>
+            </div>
+            <div className='drawer-side z-50 lg:z-auto'>
+                <label htmlFor='app-drawer' aria-label='Close navigation' className='drawer-overlay' />
+                <Sidebar onNavigate={() => setMenuOpen(false)} />
             </div>
         </div>
     );
@@ -52,8 +70,8 @@ function MenuIcon() {
     return (
         <svg
             viewBox='0 0 24 24'
-            width='26'
-            height='26'
+            width='22'
+            height='22'
             fill='none'
             stroke='currentColor'
             strokeWidth='2'
@@ -68,8 +86,8 @@ function CloseIcon() {
     return (
         <svg
             viewBox='0 0 24 24'
-            width='26'
-            height='26'
+            width='22'
+            height='22'
             fill='none'
             stroke='currentColor'
             strokeWidth='2'

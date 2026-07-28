@@ -58,7 +58,7 @@ export default function MsaView({ entries }: { entries: SequenceEntry[] }) {
     }, [shown, width]);
 
     return (
-        <div className='msa-container' ref={containerRef}>
+        <div className='msa-container w-full' ref={containerRef}>
             {width > 0 && elementsRegistered && (
                 <nightingale-manager>
                     <nightingale-navigation

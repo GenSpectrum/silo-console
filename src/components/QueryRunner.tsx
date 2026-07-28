@@ -28,6 +28,12 @@ type Verdict = {
     message: string;
 };
 
+const VERDICT_CLASSES: Record<Verdict['status'], string> = {
+    correct: 'alert border-success/30 bg-success/10 text-success',
+    wrong: 'alert border-error/30 bg-error/10 text-error',
+    unknown: 'alert border-base-300 bg-base-200 text-base-content/70',
+};
+
 type ErrorMark = {
     position: ErrorPosition;
     message: string;
@@ -126,32 +132,50 @@ export default function QueryRunner({ initialQuery = '', referenceQuery }: Query
                 errorPosition={errorMark?.position}
                 errorMessage={errorMark?.message}
             />
-            <div className='toolbar'>
-                <button onClick={run} disabled={running}>
+            <div className='mt-3 flex flex-wrap items-center gap-2'>
+                <button className='btn btn-primary btn-sm' onClick={run} disabled={running}>
                     Run (Ctrl/Cmd+Enter)
                 </button>
-                <button className='secondary subtle' onClick={toggleCurlCommand}>
+                <button className='btn btn-ghost btn-sm' onClick={toggleCurlCommand}>
                     cURL
                 </button>
-                {running && <span className='hint'>Running…</span>}
+                {running && (
+                    <span className='flex items-center gap-2 text-xs text-base-content/60' role='status'>
+                        <span className='loading loading-xs loading-spinner' />
+                        Running…
+                    </span>
+                )}
             </div>
 
             {showCurl && (
-                <div className='curl-box'>
-                    <pre>{curlCommand}</pre>
-                    <button className='secondary' onClick={copyCurlCommand}>
+                <div className='mt-3 flex items-start gap-3 rounded-box border border-base-300 bg-base-200 p-3'>
+                    <pre className='min-w-0 flex-1 overflow-x-auto font-mono text-xs break-all whitespace-pre-wrap'>
+                        {curlCommand}
+                    </pre>
+                    <button className='btn shrink-0 btn-outline btn-xs' onClick={copyCurlCommand}>
                         {curlCopied ? 'Copied' : 'Copy'}
                     </button>
                 </div>
             )}
 
-            {verdict && <div className={`verdict ${verdict.status}`}>{verdict.message}</div>}
+            {verdict && (
+                <div className={`${VERDICT_CLASSES[verdict.status]} mt-3 py-2 text-sm font-semibold`} role='status'>
+                    {verdict.message}
+                </div>
+            )}
 
-            {error && <div className='error'>{error}</div>}
+            {error && (
+                <div
+                    className='mt-3 alert border-error/30 bg-error/10 py-2 font-mono text-xs whitespace-pre-wrap text-error'
+                    role='alert'
+                >
+                    {error}
+                </div>
+            )}
 
             {result && (
                 <>
-                    <div className='meta'>
+                    <div className='mt-3 text-xs text-base-content/60'>
                         {result.rows.length} row{result.rows.length === 1 ? '' : 's'} · {result.executionMs} ms until
                         first content download + {result.downloadMs} ms download (= {result.elapsedMs} ms total)
                         {result.dataVersion ? ` · data-version ${result.dataVersion}` : ''}
