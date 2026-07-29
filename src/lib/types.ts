@@ -8,6 +8,7 @@ export type QueryResult = {
     executionMs: number;
     downloadMs: number;
     elapsedMs: number;
+    source?: 'remote' | 'local';
 };
 
 export type ErrorPosition = {

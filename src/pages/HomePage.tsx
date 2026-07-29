@@ -110,9 +110,9 @@ function GetStartedSection() {
                     />
                     <PathCard
                         to='/console'
-                        eyebrow='Explore'
+                        eyebrow='Use'
                         title='Console'
-                        description='Connect to a public SILO instance, inspect its schema, run queries, and view the results.'
+                        description='Connect to a public SILO instance or query your own data directly from the browser (using WebAssembly)'
                         action='Open the console'
                     />
                 </div>

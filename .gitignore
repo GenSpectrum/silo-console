@@ -1,3 +1,5 @@
 node_modules
 dist
+.generated-public
+.silo-wasm
 *.log

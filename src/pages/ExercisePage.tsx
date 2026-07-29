@@ -3,6 +3,9 @@ import { exercises, getExercise } from '../data/exercises';
 import QueryRunner from '../components/QueryRunner';
 import { EXERCISE_SERVER } from '../config';
 import { usePageMeta } from '../lib/pageMeta';
+import { remoteQueryTarget } from '../lib/queryTarget';
+
+const exerciseTarget = remoteQueryTarget(EXERCISE_SERVER);
 
 export default function ExercisePage() {
     const { slug } = useParams();
@@ -51,7 +54,7 @@ export default function ExercisePage() {
                 Write a query and run it. The result is compared with the reference answer without considering row
                 order.
             </p>
-            <QueryRunner key={slug} server={EXERCISE_SERVER} referenceQuery={exercise.answer} />
+            <QueryRunner key={slug} target={exerciseTarget} referenceQuery={exercise.answer} />
 
             <div className='mt-6 space-y-3'>
                 <details className='collapse border border-base-300 bg-base-100'>

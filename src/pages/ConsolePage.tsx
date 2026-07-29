@@ -1,22 +1,37 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import QueryRunner from '../components/QueryRunner';
-import { DEFAULT_CONSOLE_SERVER } from '../config';
-import { runQuery } from '../lib/runQuery';
+import { DEFAULT_CONSOLE_SERVER, SILO_WASM_ENABLED, SILO_WASM_VERSION } from '../config';
 import { fetchSiloInfo, type SiloInfo } from '../lib/siloInfo';
 import { buildConsoleShareUrl, normalizeServerUrl } from '../lib/serverUrl';
 import { usePageMeta } from '../lib/pageMeta';
 import type { QueryRow } from '../lib/types';
 import { publicInstances, type PublicInstance } from '../data/publicInstances';
+import { remoteQueryTarget, type QueryTarget } from '../lib/queryTarget';
+import type { LocalSiloClient } from '../lib/localSiloClient';
+import type { LocalSiloEvent, LocalSiloProgress } from '../lib/localSiloProtocol';
 
 const STORAGE_KEY = 'silo-console-server';
+const LocalDataSetup =
+    import.meta.env.VITE_SILO_WASM_ENABLED === 'true' ? lazy(() => import('../components/LocalDataSetup')) : null;
 
-type Connection = {
+type RemoteConnection = {
+    kind: 'remote';
     server: string;
     info: SiloInfo;
+    target: QueryTarget;
     publicInstance?: PublicInstance;
 };
 
-type ConnectionMode = 'public' | 'custom';
+type LocalConnection = {
+    kind: 'local';
+    info: SiloInfo;
+    target: LocalSiloClient;
+    canDownloadState: boolean;
+};
+
+type Connection = RemoteConnection | LocalConnection;
+
+type ConnectionMode = 'public' | 'custom' | 'local';
 
 type SchemaState =
     | { status: 'idle' | 'loading'; rows: QueryRow[]; error: null }
@@ -38,7 +53,18 @@ export default function ConsolePage() {
     const [query, setQuery] = useState(initialQuery);
     const [linkCopied, setLinkCopied] = useState(false);
     const [autoRunSharedQuery, setAutoRunSharedQuery] = useState(Boolean(sharedServer && initialQuery.trim()));
+    const [exportingState, setExportingState] = useState(false);
+    const [exportProgress, setExportProgress] = useState<LocalSiloProgress | null>(null);
+    const [exportError, setExportError] = useState<string | null>(null);
     const sharedConnectionStarted = useRef(false);
+    const activeLocalClient = useRef<LocalSiloClient | null>(null);
+
+    useEffect(
+        () => () => {
+            activeLocalClient.current?.dispose();
+        },
+        [],
+    );
 
     useEffect(() => {
         if (!linkCopied) return undefined;
@@ -46,10 +72,10 @@ export default function ConsolePage() {
         return () => window.clearTimeout(timeout);
     }, [linkCopied]);
 
-    const loadSchema = useCallback(async (server: string) => {
+    const loadSchema = useCallback(async (target: QueryTarget) => {
         setSchema({ status: 'loading', rows: [], error: null });
         try {
-            const result = await runQuery(server, 'default.schema()');
+            const result = await target.run('default.schema()');
             setSchema({ status: 'ready', rows: result.rows, error: null });
         } catch (error) {
             setSchema({
@@ -68,10 +94,11 @@ export default function ConsolePage() {
             try {
                 const server = normalizeServerUrl(serverValue);
                 const info = await fetchSiloInfo(server);
+                const target = remoteQueryTarget(server);
                 setServerInput(server);
-                setConnection({ server, info, publicInstance });
+                setConnection({ kind: 'remote', server, info, target, publicInstance });
                 localStorage.setItem(STORAGE_KEY, server);
-                void loadSchema(server);
+                void loadSchema(target);
             } catch (error) {
                 setConnection(null);
                 setSchema({ status: 'idle', rows: [], error: null });
@@ -106,15 +133,39 @@ export default function ConsolePage() {
         setConnectionError(null);
     };
 
-    const changeServer = () => {
+    const changeTarget = () => {
+        if (
+            connection?.kind === 'local' &&
+            !window.confirm('Change data and clear the local SILO database from this tab?')
+        ) {
+            return;
+        }
+        activeLocalClient.current?.dispose();
+        activeLocalClient.current = null;
         setConnection(null);
         setSchema({ status: 'idle', rows: [], error: null });
         setConnectionError(null);
         setLinkCopied(false);
+        setExportError(null);
+        setExportProgress(null);
+    };
+
+    const connectLocal = (client: LocalSiloClient, info: SiloInfo, canDownloadState: boolean) => {
+        activeLocalClient.current?.dispose();
+        activeLocalClient.current = client;
+        setConnection({
+            kind: 'local',
+            info: { ...info, version: SILO_WASM_VERSION },
+            target: client,
+            canDownloadState,
+        });
+        setConnectionError(null);
+        setExportError(null);
+        void loadSchema(client);
     };
 
     const copyShareLink = async () => {
-        if (!connection) return;
+        if (!connection || connection.kind !== 'remote') return;
         const url = buildConsoleShareUrl(window.location.href, connection.server, query);
         try {
             await navigator.clipboard.writeText(url);
@@ -124,23 +175,44 @@ export default function ConsolePage() {
         }
     };
 
+    const downloadProcessedState = async () => {
+        if (!connection || connection.kind !== 'local' || exportingState) return;
+        setExportingState(true);
+        setExportError(null);
+        try {
+            const blob = await connection.target.saveState((event: LocalSiloEvent) => {
+                if (event.type === 'progress') setExportProgress(event.value);
+            });
+            downloadBlob(blob, 'silo-state.zip');
+        } catch (error) {
+            setExportError(error instanceof Error ? error.message : String(error));
+        } finally {
+            setExportingState(false);
+            setExportProgress(null);
+        }
+    };
+
     return (
         <div className='console-page mx-auto w-full max-w-7xl px-4 py-8 lg:px-6 lg:py-10'>
             <h1 className='text-3xl font-bold tracking-tight'>Console</h1>
 
-            <div className='mt-4 alert border-info/25 bg-info/8 px-3 py-2 text-sm'>
-                <p className='text-base-content/65'>
-                    <span className='font-semibold text-base-content'>Runs in your browser.</span> Queries and results
-                    go only between your browser and the selected SILO instance; nothing is sent to us.
-                </p>
-            </div>
+            {!connection && (
+                <div className='mt-4 alert border-info/25 bg-info/8 px-3 py-2 text-sm'>
+                    <p className='text-base-content/65'>
+                        <span className='font-semibold text-base-content'>Runs in your browser.</span>{' '}
+                        {SILO_WASM_ENABLED
+                            ? 'Remote queries go directly to the selected SILO instance. Local files and processing stay on this device.'
+                            : 'Queries and results go only between your browser and the selected SILO instance; nothing is sent to us.'}
+                    </p>
+                </div>
+            )}
 
             {!connection ? (
                 <section className='card mt-4 max-w-3xl border border-base-300 bg-base-100'>
                     <div className='card-body'>
-                        <h2 className='card-title'>Choose an instance</h2>
+                        <h2 className='card-title'>Choose where to query</h2>
                         <div
-                            className='tabs-box mt-2 tabs grid w-full grid-cols-2 sm:w-fit'
+                            className={`tabs-box mt-2 tabs grid w-full ${SILO_WASM_ENABLED ? 'grid-cols-3' : 'grid-cols-2'} sm:w-fit`}
                             role='tablist'
                             aria-label='Connection method'
                         >
@@ -164,6 +236,18 @@ export default function ConsolePage() {
                             >
                                 Custom URL
                             </button>
+                            {SILO_WASM_ENABLED && (
+                                <button
+                                    className={`tab ${connectionMode === 'local' ? 'tab-active' : ''}`}
+                                    type='button'
+                                    role='tab'
+                                    aria-selected={connectionMode === 'local'}
+                                    disabled={connecting}
+                                    onClick={() => selectMode('local')}
+                                >
+                                    Your data
+                                </button>
+                            )}
                         </div>
 
                         {connectionMode === 'public' ? (
@@ -173,13 +257,27 @@ export default function ConsolePage() {
                                 onSelect={setSelectedPublicId}
                                 onSubmit={connectPublic}
                             />
-                        ) : (
+                        ) : connectionMode === 'custom' ? (
                             <CustomServerForm
                                 server={serverInput}
                                 connecting={connecting}
                                 onServerChange={setServerInput}
                                 onSubmit={connectCustom}
                             />
+                        ) : LocalDataSetup ? (
+                            <Suspense
+                                fallback={
+                                    <div className='mt-4 flex items-center gap-2 text-sm text-base-content/60'>
+                                        <span className='loading loading-sm loading-spinner' /> Loading local SILO…
+                                    </div>
+                                }
+                            >
+                                <LocalDataSetup onReady={connectLocal} />
+                            </Suspense>
+                        ) : (
+                            <div className='mt-4 alert border-error/25 bg-error/8 text-sm text-error'>
+                                Local SILO is unavailable in this build.
+                            </div>
                         )}
 
                         {connectionError && (
@@ -187,9 +285,11 @@ export default function ConsolePage() {
                                 {connectionError}
                             </div>
                         )}
-                        <p className='mt-2 text-xs text-base-content/50'>
-                            The selected address is stored only in this browser.
-                        </p>
+                        {connectionMode !== 'local' && (
+                            <p className='mt-2 text-xs text-base-content/50'>
+                                The selected address is stored only in this browser.
+                            </p>
+                        )}
                     </div>
                 </section>
             ) : (
@@ -197,13 +297,13 @@ export default function ConsolePage() {
                     <section className='mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-box border border-success/25 bg-success/8 px-3 py-2'>
                         <div className='flex w-full min-w-0 flex-none flex-col items-start gap-x-3 gap-y-1 sm:w-auto sm:flex-1 sm:flex-row sm:items-center'>
                             <div className='flex shrink-0 items-center gap-2 font-semibold text-success'>
-                                <span className='status status-success' /> Connected
+                                <span className='status status-success' />
+                                {connection.kind === 'local' ? 'Local data ready' : 'Connected'}
                             </div>
-                            <div
-                                className='w-full min-w-0 flex-1 truncate text-sm text-base-content/65'
-                                title={connection.server}
-                            >
-                                {connection.publicInstance ? (
+                            <div className='w-full min-w-0 flex-1 truncate text-sm text-base-content/65'>
+                                {connection.kind === 'local' ? (
+                                    'Files and queries stay in this tab'
+                                ) : connection.publicInstance ? (
                                     <>
                                         {connection.publicInstance.name} · hosted by{' '}
                                         {connection.publicInstance.hostedBy}
@@ -225,13 +325,40 @@ export default function ConsolePage() {
                                 </dd>
                             </div>
                         </dl>
-                        <button className='btn btn-outline btn-sm' type='button' onClick={changeServer}>
-                            Change server
+                        {connection.kind === 'local' && connection.canDownloadState && (
+                            <button
+                                className='btn btn-primary btn-sm'
+                                type='button'
+                                disabled={exportingState}
+                                onClick={downloadProcessedState}
+                            >
+                                {exportingState && <span className='loading loading-xs loading-spinner' />}
+                                {exportingState ? 'Preparing ZIP…' : 'Download processed state'}
+                            </button>
+                        )}
+                        <button
+                            className='btn btn-outline btn-sm'
+                            type='button'
+                            disabled={exportingState}
+                            onClick={changeTarget}
+                        >
+                            {connection.kind === 'local' ? 'Change data' : 'Change server'}
                         </button>
                     </section>
 
+                    {exportProgress && (
+                        <div className='mt-3 alert border-info/25 bg-info/8 text-sm' role='status'>
+                            <span className='loading loading-sm loading-spinner' /> {exportProgress.message}
+                        </div>
+                    )}
+                    {exportError && (
+                        <div className='mt-3 alert border-error/25 bg-error/8 text-sm text-error' role='alert'>
+                            {exportError}
+                        </div>
+                    )}
+
                     <details className='collapse mt-3 border border-base-300 bg-base-100'>
-                        <summary className='collapse-title font-semibold'>Instance schema</summary>
+                        <summary className='collapse-title font-semibold'>Data schema</summary>
                         <div className='collapse-content'>
                             {schema.status === 'loading' && (
                                 <div
@@ -243,7 +370,7 @@ export default function ConsolePage() {
                             )}
                             {schema.status === 'error' && (
                                 <div className='alert border-error/25 bg-error/8 text-sm text-error' role='alert'>
-                                    The instance connected, but its schema could not be loaded. {schema.error}
+                                    The data is ready, but its schema could not be loaded. {schema.error}
                                 </div>
                             )}
                             {schema.status === 'ready' && <SchemaTable rows={schema.rows} />}
@@ -258,17 +385,20 @@ export default function ConsolePage() {
                                     A <code>.limit(100)</code> is added when the query does not set a limit.
                                 </p>
                             </div>
-                            <div
-                                className='tooltip tooltip-bottom tooltip-end'
-                                data-tip='The link includes the server URL and query in its browser-only fragment'
-                            >
-                                <button className='btn btn-outline btn-sm' type='button' onClick={copyShareLink}>
-                                    {linkCopied ? 'Link copied' : 'Copy share link'}
-                                </button>
-                            </div>
+                            {connection.kind === 'remote' && (
+                                <div
+                                    className='tooltip tooltip-bottom tooltip-end'
+                                    data-tip='The link includes the server URL and query in its browser-only fragment'
+                                >
+                                    <button className='btn btn-outline btn-sm' type='button' onClick={copyShareLink}>
+                                        {linkCopied ? 'Link copied' : 'Copy share link'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                         <QueryRunner
-                            server={connection.server}
+                            key={connection.target.id}
+                            target={connection.target}
                             initialQuery={initialQuery}
                             onQueryChange={setQuery}
                             autoRun={autoRunSharedQuery}
@@ -407,4 +537,15 @@ function storedServer() {
 
 function shortVersion(version: string) {
     return version.length > 12 ? version.slice(0, 10) : version;
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }

@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { runBounded } from '../lib/runQuery';
+import { runBoundedTarget, type QueryTarget } from '../lib/queryTarget';
 import { resultsMatch } from '../lib/compareResults';
 import { celebrate } from '../lib/celebrate';
 import { parseErrorPosition } from '../lib/parseError';
-import { buildCurlCommand } from '../lib/curlCommand';
 import QueryEditor from './QueryEditor';
 import ResultsTable from './ResultsTable';
 import type { ErrorPosition, QueryResult, QueryRow } from '../lib/types';
@@ -13,11 +12,11 @@ import type { SiloQueryError } from '../lib/runQuery';
 // exercise doesn't repeatedly re-query the server for the same answer.
 const referenceCache = new Map<string, QueryRow[]>();
 
-async function getReferenceRows(base: string, referenceQuery: string) {
-    const key = base + '\n' + referenceQuery;
+async function getReferenceRows(target: QueryTarget, referenceQuery: string) {
+    const key = target.id + '\n' + referenceQuery;
     const cached = referenceCache.get(key);
     if (cached) return cached;
-    const res = await runBounded(base, referenceQuery);
+    const res = await runBoundedTarget(target, referenceQuery);
     referenceCache.set(key, res.rows);
     return res.rows;
 }
@@ -39,7 +38,7 @@ type ErrorMark = {
 };
 
 type QueryRunnerProps = {
-    server: string;
+    target: QueryTarget;
     initialQuery?: string;
     referenceQuery?: string;
     onQueryChange?: (query: string) => void;
@@ -51,7 +50,7 @@ type QueryRunnerProps = {
 // When `referenceQuery` is provided (exercise mode), the user's result is
 // compared against the reference answer and a Correct!/Wrong! verdict is shown.
 export default function QueryRunner({
-    server,
+    target,
     initialQuery = '',
     referenceQuery,
     onQueryChange,
@@ -91,12 +90,12 @@ export default function QueryRunner({
 
         setRunning(true);
         try {
-            const res = await runBounded(server, query);
+            const res = await runBoundedTarget(target, query);
             setResult(res);
 
             if (referenceQuery) {
                 try {
-                    const referenceRows = await getReferenceRows(server, referenceQuery);
+                    const referenceRows = await getReferenceRows(target, referenceQuery);
                     setVerdict(
                         resultsMatch(res.rows, referenceRows)
                             ? { status: 'correct', message: 'Correct!' }
@@ -117,7 +116,7 @@ export default function QueryRunner({
         } finally {
             setRunning(false);
         }
-    }, [query, referenceQuery, server]);
+    }, [query, referenceQuery, target]);
 
     useEffect(() => {
         if (!autoRun || autoRunStarted.current || !query.trim()) return;
@@ -126,7 +125,7 @@ export default function QueryRunner({
         void run();
     }, [autoRun, onAutoRun, query, run]);
 
-    const curlCommand = buildCurlCommand(server, query);
+    const curlCommand = target.curlCommand?.(query) || '';
 
     const copyCurlCommand = useCallback(async () => {
         try {
@@ -156,9 +155,11 @@ export default function QueryRunner({
                 <button type='button' className='btn btn-primary btn-sm' onClick={run} disabled={running}>
                     Run (Ctrl/Cmd+Enter)
                 </button>
-                <button type='button' className='btn btn-ghost btn-sm' onClick={toggleCurlCommand}>
-                    cURL
-                </button>
+                {target.curlCommand && (
+                    <button type='button' className='btn btn-ghost btn-sm' onClick={toggleCurlCommand}>
+                        cURL
+                    </button>
+                )}
                 {running && (
                     <span className='flex items-center gap-2 text-xs text-base-content/60' role='status'>
                         <span className='loading loading-xs loading-spinner' />
@@ -167,7 +168,7 @@ export default function QueryRunner({
                 )}
             </div>
 
-            {showCurl && (
+            {showCurl && target.curlCommand && (
                 <div className='mt-3 flex items-start gap-3 rounded-box border border-base-300 bg-base-200 p-3'>
                     <pre className='min-w-0 flex-1 overflow-x-auto font-mono text-xs break-all whitespace-pre-wrap'>
                         {curlCommand}
@@ -196,8 +197,15 @@ export default function QueryRunner({
             {result && (
                 <>
                     <div className='mt-3 text-xs text-base-content/60'>
-                        {result.rows.length} row{result.rows.length === 1 ? '' : 's'} · {result.executionMs} ms until
-                        first content download + {result.downloadMs} ms download (= {result.elapsedMs} ms total)
+                        {result.rows.length} row{result.rows.length === 1 ? '' : 's'} ·{' '}
+                        {result.source === 'local' ? (
+                            <>{result.elapsedMs} ms in this browser</>
+                        ) : (
+                            <>
+                                {result.executionMs} ms until first content download + {result.downloadMs} ms download
+                                (= {result.elapsedMs} ms total)
+                            </>
+                        )}
                         {result.dataVersion ? ` · data-version ${result.dataVersion}` : ''}
                     </div>
                     <ResultsTable rows={result.rows} />

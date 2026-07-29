@@ -33,7 +33,8 @@ preview port is 5001.
 
 ## SILO Query Behavior
 
-- `silo-version.txt` records the SILO commit this app is currently optimized against. When updating it, review the language reference, editor highlighting, examples, and exercises against the matching SILO `documentation/query_documentation.md`.
+- `silo-version.txt` records the SILO commit this app is currently optimized against. When updating it, review the language reference, editor highlighting, examples, and exercises against the matching SILO `documentation/query_documentation.md`; also update `silo-wasm-source.txt` to the matching successful `silo-wasm` artifact.
+- Browser-local SILO is disabled by default. Enabled builds read `silo_wasm.js` and `silo_wasm.wasm` from `SILO_WASM_ASSET_DIR` (default `.silo-wasm/`) and require `VITE_SILO_WASM_ENABLED=true` plus cross-origin-isolation response headers.
 - `src/lib/runQuery.ts` sends plain-text SILO queries to `POST <server>/query` with
   `Accept: application/x-ndjson`.
 - `runBounded()` appends `.limit(100)` unless the query already has a limit, and retries without the
