@@ -165,13 +165,78 @@ export default function LanguageReferencePage() {
                 description={
                     <>
                         Combine two pipelines by equality between columns. Multiple equalities may be joined with{' '}
-                        <code>&amp;&amp;</code>. The default type is <code>inner</code>; supported types are{' '}
-                        <code>inner</code>, <code>left</code>, <code>right</code>, <code>full</code>,{' '}
-                        <code>leftSemi</code>, <code>rightSemi</code>, <code>leftAnti</code>, and <code>rightAnti</code>
-                        {
-                            '. The two inputs must use disjoint column names. Apply filters to an input pipeline because a '
-                        }
-                        <code>join</code> result cannot be filtered.
+                        <code>&amp;&amp;</code>. The default type is <code>inner</code>. The two inputs must use
+                        disjoint column names. Apply filters to an input pipeline because a <code>join</code> result
+                        cannot be filtered.
+                        <div className='my-4 overflow-x-auto rounded-box border border-base-300'>
+                            <table className='table table-sm'>
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Kept rows</th>
+                                        <th>Output columns</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <code>inner</code>
+                                        </td>
+                                        <td>Matching pairs only (default)</td>
+                                        <td>Left and right</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <code>left</code>
+                                        </td>
+                                        <td>All left rows; right columns are null-filled when unmatched</td>
+                                        <td>Left and right</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <code>right</code>
+                                        </td>
+                                        <td>All right rows; left columns are null-filled when unmatched</td>
+                                        <td>Left and right</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <code>full</code>
+                                        </td>
+                                        <td>All rows from both sides; the unmatched side is null-filled</td>
+                                        <td>Left and right</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <code>leftSemi</code>
+                                        </td>
+                                        <td>Left rows with a match</td>
+                                        <td>Left only</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <code>rightSemi</code>
+                                        </td>
+                                        <td>Right rows with a match</td>
+                                        <td>Right only</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <code>leftAnti</code>
+                                        </td>
+                                        <td>Left rows without a match</td>
+                                        <td>Left only</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <code>rightAnti</code>
+                                        </td>
+                                        <td>Right rows without a match</td>
+                                        <td>Right only</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </>
                 }
             >

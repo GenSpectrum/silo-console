@@ -86,7 +86,7 @@ B.1.351      | 987`,
         slug: 'worldwide-spain-lineage-counts',
         title: 'Compare worldwide and Spanish lineage counts',
         question:
-            'Return the 50 most frequent pango lineages with their worldwide sequence count and their sequence count from Spain. Include lineages that have no sequences from Spain. Sort by the worldwide count, highest first.',
+            'Identify the most common 50 pango lineages worldwide and return their worldwide sequence count and their sequence count from Spain. Sort by the worldwide count, highest first.',
         outputExample: `pangoLineage | countWorld | countSpain
 ------------ | ---------- | ----------
 BA.2         | 1234       | 42
@@ -386,6 +386,36 @@ sample-US-001 | 2024-05-09 | JN.1.4       | California`,
       .limit(100)
   )
   .orderBy({date.desc()})`,
+    },
+    {
+        slug: 'swiss-lineages-absent-argentina',
+        title: 'Find Swiss lineages absent from Argentina',
+        question:
+            'Which Pango lineages were observed in Switzerland but never in Argentina? Return the 20 lineages with the largest Swiss sequence count, highest first.',
+        outputExample: `pangoLineage | countSwitzerland
+------------ | ----------------
+AY.43.4      | 2776
+B.1.177      | 2661`,
+        explanation:
+            'Create one lineage summary for each country. Comparing the two summaries keeps only Swiss lineages without a match from Argentina. Order the remaining rows by their Swiss count, use the lineage to resolve ties deterministically, and keep the first 20.',
+        documentation: [
+            { label: 'join', to: '/docs/reference/query-language#join' },
+            { label: 'null checks', to: '/docs/reference/functions#null' },
+        ],
+        answer: `default
+  .filter(country = 'Switzerland' && isNotNull(pangoLineage))
+  .groupBy({countSwitzerland:=count()}, {pangoLineage})
+  .join(
+    default
+      .filter(country = 'Argentina' && isNotNull(pangoLineage))
+      .groupBy({countArgentina:=count()}, {pangoLineage})
+      .map({pangoLineageArgentina:=pangoLineage})
+      .project({pangoLineageArgentina, countArgentina}),
+    pangoLineage = pangoLineageArgentina,
+    type := leftAnti
+  )
+  .orderBy({countSwitzerland.desc(), pangoLineage})
+  .limit(20)`,
     },
 ];
 
