@@ -20,6 +20,7 @@ export type Exercise = {
     answer: string;
     explanation: string;
     documentation: { label: string; to: string }[];
+    returnAllRows?: boolean;
 };
 
 export const exercises: Exercise[] = [
@@ -70,6 +71,32 @@ export const exercises: Exercise[] = [
   .groupBy({count:=count()}, {pangoLineage})
   .orderBy({count.desc()})
   .limit(20)`,
+    },
+    {
+        slug: 'worldwide-spain-lineage-counts',
+        title: 'Compare worldwide and Spanish lineage counts',
+        question:
+            'Return every pango lineage with its worldwide sequence count and its sequence count from Spain. Include lineages that have no sequences from Spain. Sort by the worldwide count, highest first.',
+        explanation:
+            'Build one aggregation for worldwide counts and another for Spanish counts. Give the lineage column on the Spanish side a distinct name, then use a left join so every worldwide lineage is retained even when Spain has no matching row. Project the requested columns and order by the worldwide count.',
+        documentation: [
+            { label: 'join', to: '/docs/reference/query-language#join' },
+            { label: 'groupBy', to: '/docs/reference/query-language#group-by' },
+        ],
+        answer: `default
+  .groupBy({countWorld:=count()}, {pangoLineage})
+  .join(
+    default
+      .filter(country = 'Spain')
+      .groupBy({countSpain:=count()}, {pangoLineage})
+      .map({pangoLineage2 := pangoLineage})
+      .project({pangoLineage2, countSpain}),
+    pangoLineage = pangoLineage2,
+    type := left
+  )
+  .project({pangoLineage, countWorld, countSpain})
+  .orderBy({countWorld.desc()})`,
+        returnAllRows: true,
     },
     {
         slug: 'submissions-by-iso-week',

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { runBoundedTarget, type QueryTarget } from '../lib/queryTarget';
+import { runTargetQuery, type QueryTarget } from '../lib/queryTarget';
 import { resultsMatch } from '../lib/compareResults';
 import { celebrate } from '../lib/celebrate';
 import { parseErrorPosition } from '../lib/parseError';
@@ -12,11 +12,11 @@ import type { SiloQueryError } from '../lib/runQuery';
 // exercise doesn't repeatedly re-query the server for the same answer.
 const referenceCache = new Map<string, QueryRow[]>();
 
-async function getReferenceRows(target: QueryTarget, referenceQuery: string) {
-    const key = target.id + '\n' + referenceQuery;
+async function getReferenceRows(target: QueryTarget, referenceQuery: string, returnAllRows: boolean) {
+    const key = target.id + '\n' + returnAllRows + '\n' + referenceQuery;
     const cached = referenceCache.get(key);
     if (cached) return cached;
-    const res = await runBoundedTarget(target, referenceQuery);
+    const res = await runTargetQuery(target, referenceQuery, returnAllRows);
     referenceCache.set(key, res.rows);
     return res.rows;
 }
@@ -44,6 +44,7 @@ type QueryRunnerProps = {
     onQueryChange?: (query: string) => void;
     autoRun?: boolean;
     onAutoRun?: () => void;
+    returnAllRows?: boolean;
 };
 
 // Reusable query widget: editor + Run button + status/meta/error + results table.
@@ -56,6 +57,7 @@ export default function QueryRunner({
     onQueryChange,
     autoRun = false,
     onAutoRun,
+    returnAllRows = false,
 }: QueryRunnerProps) {
     const [query, setQuery] = useState(initialQuery);
     const [running, setRunning] = useState(false);
@@ -90,12 +92,12 @@ export default function QueryRunner({
 
         setRunning(true);
         try {
-            const res = await runBoundedTarget(target, query);
+            const res = await runTargetQuery(target, query, returnAllRows);
             setResult(res);
 
             if (referenceQuery) {
                 try {
-                    const referenceRows = await getReferenceRows(target, referenceQuery);
+                    const referenceRows = await getReferenceRows(target, referenceQuery, returnAllRows);
                     setVerdict(
                         resultsMatch(res.rows, referenceRows)
                             ? { status: 'correct', message: 'Correct!' }
@@ -116,7 +118,7 @@ export default function QueryRunner({
         } finally {
             setRunning(false);
         }
-    }, [query, referenceQuery, target]);
+    }, [query, referenceQuery, returnAllRows, target]);
 
     useEffect(() => {
         if (!autoRun || autoRunStarted.current || !query.trim()) return;

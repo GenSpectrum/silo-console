@@ -11,6 +11,7 @@ const FUNCTIONS = new Set([
     'limit',
     'offset',
     'randomize',
+    'join',
     'unionAll',
     'mutations',
     'aminoAcidMutations',

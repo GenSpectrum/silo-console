@@ -70,6 +70,14 @@ export default function SqlComparisonPage() {
                         </tr>
                         <tr>
                             <td>
+                                <code>JOIN</code>
+                            </td>
+                            <td>
+                                <code>.join(otherPipeline, leftColumn = rightColumn)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
                                 <code>UNION ALL</code>
                             </td>
                             <td>

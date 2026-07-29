@@ -54,7 +54,12 @@ export default function ExercisePage() {
                 Write a query and run it. The result is compared with the reference answer without considering row
                 order.
             </p>
-            <QueryRunner key={slug} target={exerciseTarget} referenceQuery={exercise.answer} />
+            <QueryRunner
+                key={slug}
+                target={exerciseTarget}
+                referenceQuery={exercise.answer}
+                returnAllRows={exercise.returnAllRows}
+            />
 
             <div className='mt-6 space-y-3'>
                 <details className='collapse border border-base-300 bg-base-100'>

@@ -160,6 +160,33 @@ export default function LanguageReferencePage() {
                 {`default.randomize(seed := 42).limit(10)`}
             </ReferenceItem>
             <ReferenceItem
+                id='join'
+                name='join(left, right, on [, type := kind])'
+                description={
+                    <>
+                        Combine two pipelines by equality between columns. Multiple equalities may be joined with{' '}
+                        <code>&amp;&amp;</code>. The default type is <code>inner</code>; supported types are{' '}
+                        <code>inner</code>, <code>left</code>, <code>right</code>, <code>full</code>,{' '}
+                        <code>leftSemi</code>, <code>rightSemi</code>, <code>leftAnti</code>, and <code>rightAnti</code>
+                        {
+                            '. The two inputs must use disjoint column names. Apply filters to an input pipeline because a '
+                        }
+                        <code>join</code> result cannot be filtered.
+                    </>
+                }
+            >
+                {`default.groupBy({countWorld := count()}, {pangoLineage})
+  .join(
+    default
+      .filter(country = 'Spain')
+      .groupBy({countSpain := count()}, {pangoLineage})
+      .map({pangoLineage2 := pangoLineage})
+      .project({pangoLineage2, countSpain}),
+    pangoLineage = pangoLineage2,
+    type := left
+  )`}
+            </ReferenceItem>
+            <ReferenceItem
                 id='union-all'
                 name='unionAll(left, right)'
                 description='Concatenate two results with identical column names, types, and order. Duplicate rows are retained.'
@@ -183,7 +210,7 @@ export default function LanguageReferencePage() {
             <ReferenceItem
                 id='mutations'
                 name='mutations(minProportion := p [, sequenceNames := {...}] [, fields := {...}])'
-                description='Aggregate nucleotide substitutions and deletions above a frequency threshold. Returns mutation details, proportion, coverage, and count.'
+                description='Aggregate nucleotide substitutions and deletions above a frequency threshold. Returns source and observed symbols, position, sequence name, proportion, coverage, and count.'
             >
                 {`default.filter(country = 'Switzerland')
   .mutations(minProportion := 0.05, sequenceNames := {main})`}
