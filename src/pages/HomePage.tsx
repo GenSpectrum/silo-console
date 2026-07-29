@@ -58,9 +58,11 @@ export default function HomePage() {
                 </div>
             </section>
 
+            <GetStartedSection />
+
             <section className='capabilities-section mx-auto max-w-7xl px-4 py-14 lg:px-6 lg:py-20'>
                 <div className='max-w-3xl'>
-                    <h2 className='text-3xl font-bold tracking-tight'>Queries on metadata and sequences</h2>
+                    <h2 className='text-3xl font-bold tracking-tight'>Features</h2>
                     <p className='mt-4 leading-relaxed text-base-content/70'>
                         A query is a pipeline of operations on a table. It can filter and aggregate metadata, retrieve
                         records, or inspect changes relative to reference sequences.
@@ -77,7 +79,6 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <GetStartedSection />
             <ProjectsSection />
         </>
     );

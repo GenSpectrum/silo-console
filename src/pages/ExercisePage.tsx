@@ -56,7 +56,7 @@ export default function ExercisePage() {
             </p>
             <QueryRunner key={slug} target={exerciseTarget} referenceQuery={exercise.answer} />
 
-            <div className='mt-6 space-y-3'>
+            <div key={`exercise-help-${slug}`} className='mt-6 space-y-3'>
                 <details className='collapse border border-base-300 bg-base-100'>
                     <summary className='collapse-title font-semibold'>Explanation</summary>
                     <div className='collapse-content text-sm leading-relaxed text-base-content/75'>

@@ -32,7 +32,7 @@ export const exercises: Exercise[] = [
 -----
 1234`,
         explanation:
-            'Start with the complete table and filter it to rows whose country equals Switzerland. The filtered rows still have the original schema. Then use groupBy with count() and no grouping columns to reduce all matching rows to one count.',
+            'Filter the table to sequences from Switzerland. Then, use groupBy without grouping columns to count all remaining rows.',
         documentation: [
             { label: 'Query pipelines', to: '/docs/explanation/data-model#queries-are-pipelines' },
             { label: 'filter and groupBy', to: '/docs/reference/query-language#pipeline-operations' },
@@ -47,10 +47,10 @@ export const exercises: Exercise[] = [
         question:
             'Retrieve the 20 most recent sequences from Basel-Stadt, Switzerland, showing the GenBank accession, date, unaligned nucleotide sequence, aligned nucleotide sequence and S amino acid sequence.',
         outputExample: `genbankAccession | date       | unaligned_main | main    | S
------------------ | ---------- | -------------- | ------- | ------
-AB123456          | 2024-05-10 | ACGT...        | ACGT... | MFV...`,
+---------------- | ---------- | -------------- | ------- | ------
+AB123456         | 2024-05-10 | ACGT...        | ACGT... | MFV...`,
         explanation:
-            'Use both location conditions in one filter. Ordering by date descending puts the most recent records first. Projecting selects the requested columns, and an explicit limit makes the requested result size part of the query.',
+            'Filter the table to sequences from Switzerland and Basel-Stadt. Order the rows by date descending, project the requested columns and keep the first 20.',
         documentation: [
             { label: 'filter', to: '/docs/reference/query-language#filter' },
             { label: 'project, orderBy, and limit', to: '/docs/reference/query-language#pipeline-operations' },
@@ -71,7 +71,7 @@ AB123456          | 2024-05-10 | ACGT...        | ACGT... | MFV...`,
 B.1.1.7      | 1234
 B.1.351      | 987`,
         explanation:
-            'between applies an inclusive lower and upper date bound. After filtering, groupBy produces one row per lineage with its count. The count column only exists after that aggregation, so ordering by it follows groupBy.',
+            'Filter the table to dates between 1 January and 30 June 2021. Then, use groupBy to count the sequences for each lineage, order the rows by their counts and keep the first 20.',
         documentation: [
             { label: 'between', to: '/docs/reference/functions#between' },
             { label: 'groupBy and orderBy', to: '/docs/reference/query-language#pipeline-operations' },
@@ -92,7 +92,7 @@ B.1.351      | 987`,
 BA.2         | 1234       | 42
 XBB          | 987        | null`,
         explanation:
-            'Build one aggregation for worldwide counts and another for Spanish counts. Give the lineage column on the Spanish side a distinct name, then use a left join so worldwide lineages are retained even when Spain has no matching row. Project the requested columns, order by the worldwide count, and keep the first 50 rows.',
+            'Get a table of worldwide sequence counts for each lineage using groupBy. Build the same table for Spain and rename its lineage column, then use a left join to retain worldwide lineages without a match from Spain. Project the requested columns, order the rows by their worldwide counts and keep the first 50.',
         documentation: [
             { label: 'join', to: '/docs/reference/query-language#join' },
             { label: 'groupBy', to: '/docs/reference/query-language#group-by' },
@@ -122,7 +122,7 @@ XBB          | 987        | null`,
 1    | 1234
 2    | 987`,
         explanation:
-            'First restrict the input to dates in 2024. isoWeek returns a week number, and map gives that computed value the column name week. Grouping can then use the new column before orderBy arranges the weekly rows chronologically.',
+            'Filter the table to dates in 2024. Use map with isoWeek to add the week number, then use groupBy to count the sequences for each week. Order the rows by week.',
         documentation: [
             { label: 'isoWeek', to: '/docs/reference/functions#iso-week' },
             { label: 'map and groupBy', to: '/docs/reference/query-language#pipeline-operations' },
@@ -143,7 +143,7 @@ XBB          | 987        | null`,
 sample-001 | Switzerland | 2021-01-15 | B.1.1.7
 sample-002 | Germany     | 2021-01-16 | B.1.1.7`,
         explanation:
-            'hasMutation tests whether the sample differs from the configured nucleotide reference at one position, without requiring a particular alternative nucleotide. The remaining operations shape, order, and bound the matching records.',
+            'Filter the table with hasMutation to keep sequences that differ from the nucleotide reference at position 23403. Project the requested columns, order the rows by strain and keep the first 20.',
         documentation: [
             {
                 label: 'Reference coordinates',
@@ -166,7 +166,7 @@ sample-002 | Germany     | 2021-01-16 | B.1.1.7`,
 ------------ | ---------- | -------- | ------------ | ---------- | -------- | -----
 A            | G          | 23403    | main         | 0.42       | 1200     | 504`,
         explanation:
-            'The lineage predicate first selects the population to analyze. mutations then aggregates every qualifying nucleotide change across those input rows. Its threshold concerns prevalence within the filtered population, and sequenceNames restricts the aggregation to main.',
+            'Filter the table to lineage B.1.1.7 and its sublineages. Then, use mutations to get changes on the main nucleotide sequence with a minimum proportion of 5% and keep the first 20.',
         documentation: [
             { label: 'lineage', to: '/docs/reference/functions#lineage-function' },
             { label: 'mutations aggregation', to: '/docs/reference/query-language#mutations' },
@@ -185,7 +185,7 @@ A            | G          | 23403    | main         | 0.42       | 1200     | 50
 -----
 1234`,
         explanation:
-            'Combine the country, lineage, and mutation-profile conditions with &&. nOf counts how many child predicates match each row; with a count of 2 and the default behavior, two or all three nucleotide conditions are accepted. A final ungrouped count reduces the matches to one row.',
+            'Filter the table to sequences from Germany in lineage B.1.1.7 or its sublineages. Use nOf to require at least two of the three nucleotide changes, then use groupBy without grouping columns to count the remaining rows.',
         documentation: [
             { label: 'Boolean operators', to: '/docs/reference/query-language#operators' },
             { label: 'nOf', to: '/docs/reference/functions#n-of' },
@@ -212,7 +212,7 @@ A            | G          | 23403    | main         | 0.42       | 1200     | 50
 sample-051 | Germany | 2021-01-15
 sample-052 | France  | 2021-01-16`,
         explanation:
-            'Pagination needs a stable order before rows are skipped. offset removes the first 50 ordered rows and limit keeps the next 25. project can be applied afterward because ordering and pagination preserve all input columns.',
+            'Order the table by strain to give the rows a stable order. Use offset to skip the first 50 rows, keep the next 25 and project the requested columns.',
         documentation: [
             { label: 'orderBy', to: '/docs/reference/query-language#order-by' },
             { label: 'offset and limit', to: '/docs/reference/query-language#offset' },
@@ -233,7 +233,7 @@ sample-052 | France  | 2021-01-16`,
 214      | EPE             | 1234
 215      | R               | 987`,
         explanation:
-            'aminoAcidInsertions aggregates all insertions found in the input rows and restricts them to the S protein. It already produces position, insertedSymbols, and count columns. Project the requested fields, order by count descending, and use the remaining fields to make ties deterministic.',
+            'Use aminoAcidInsertions to count insertions in the S protein. Project the requested columns, order the rows by count and use the inserted symbols and position to order ties, then keep the first 20.',
         documentation: [
             {
                 label: 'Sequence insertions',
@@ -257,7 +257,7 @@ Germany | 1234
 France  | 987
 Italy   | 654`,
         explanation:
-            'in tests each row against a set of accepted country values. groupBy uses country as the grouping column, producing one count per country, and orderBy places the largest group first.',
+            'Filter the table with in to keep sequences from Germany, France and Italy. Then, use groupBy to count the sequences for each country and order the rows by their counts.',
         documentation: [
             { label: 'in', to: '/docs/reference/functions#in' },
             { label: 'groupBy', to: '/docs/reference/query-language#group-by' },
@@ -277,7 +277,7 @@ Italy   | 654`,
 sample-001 | Basel
 sample-002 | Basel`,
         explanation:
-            'like uses an RE2 regular expression, so Basel.* accepts values beginning with Basel. map adds the constant-valued area column to every matching row. project then narrows the output to strain and the new column.',
+            "Filter the table with like to keep divisions that match 'Basel.*'. Use map to add the constant area value, project the requested columns, order the rows by strain and keep the first 10.",
         documentation: [
             { label: 'like', to: '/docs/reference/functions#like' },
             { label: 'map', to: '/docs/reference/query-language#map' },
@@ -299,7 +299,7 @@ sample-002 | Basel`,
 Y          | 12
 G          | 8`,
         explanation:
-            'The first filter defines the population. aminoAcidMutations turns its sequence changes into an aggregated table with one row per qualifying mutation, including mutationTo. The following groupBy counts rows in that new table by their resulting symbol; it does not count original sequences.',
+            'Filter the table to sequences from Switzerland. Use aminoAcidMutations to get changes on the S protein with a minimum proportion of 10%, then use groupBy to count the mutation rows for each resulting symbol. Order the rows by their counts.',
         documentation: [
             { label: 'Pipeline schemas', to: '/docs/explanation/data-model#queries-are-pipelines' },
             { label: 'aminoAcidMutations', to: '/docs/reference/query-language#amino-acid-mutations' },
@@ -319,7 +319,7 @@ G          | 8`,
 -----
 1234`,
         explanation:
-            'aminoAcidMutationProfile compares each S sequence with the supplied profile. distance allows up to two conservative differences from that profile. The filter keeps matching records, and groupBy with no grouping columns returns their total count.',
+            'Filter the table with aminoAcidMutationProfile to keep S sequences within two differences of the specified symbols at positions 501 and 452. Then, use groupBy without grouping columns to count the remaining rows.',
         documentation: [
             { label: 'Mutation profiles', to: '/docs/reference/functions#mutation-profile' },
             {
@@ -344,7 +344,7 @@ G          | 8`,
 H      | V      | N       | 1234
 -      | -      | Y       | 987`,
         explanation:
-            'at reads the symbol at each 1-based S position. map names those three values as new columns. Grouping by all three columns creates one row per observed combination, while count records how many Swiss sequences have that pattern.',
+            'Filter the table to sequences from Switzerland. Use map with at to add the S symbols at positions 69, 70 and 501, then use groupBy to count the sequences for each combination. Order the rows by their counts.',
         documentation: [
             { label: 'at', to: '/docs/reference/functions#at' },
             { label: 'map and groupBy', to: '/docs/reference/query-language#pipeline-operations' },
@@ -366,7 +366,7 @@ For Germany, place should identify the country (i.e. always just be "Germany"). 
 sample-DE-001 | 2024-05-10 | JN.1         | Germany
 sample-US-001 | 2024-05-09 | JN.1.4       | California`,
         explanation:
-            'Build two pipelines with the same four output columns and compatible types. map gives place a different source in each branch, while project puts both schemas in the same order. unionAll concatenates the bounded branches, after which the combined table can be sorted.',
+            'Build a table of the 100 most recent German sequences and use map to copy the country into the place column. Build the same table for the USA with the division in the place column, then combine both tables with unionAll. Order the combined rows by date descending.',
         documentation: [
             { label: 'Pipeline schemas', to: '/docs/explanation/data-model#queries-are-pipelines' },
             { label: 'unionAll', to: '/docs/reference/query-language#union-all' },
@@ -397,7 +397,7 @@ sample-US-001 | 2024-05-09 | JN.1.4       | California`,
 AY.43.4      | 2776
 B.1.177      | 2661`,
         explanation:
-            'Create one lineage summary for each country. Comparing the two summaries keeps only Swiss lineages without a match from Argentina. Order the remaining rows by their Swiss count, use the lineage to resolve ties deterministically, and keep the first 20.',
+            'Get a distinct table of lineages for each country using groupBy. Then, use a left anti join to keep the lineages from Switzerland without a match from Argentina. Order the remaining rows by their counts and keep the first 20.',
         documentation: [
             { label: 'join', to: '/docs/reference/query-language#join' },
             { label: 'null checks', to: '/docs/reference/functions#null' },
@@ -407,14 +407,14 @@ B.1.177      | 2661`,
   .groupBy({countSwitzerland:=count()}, {pangoLineage})
   .join(
     default
-      .filter(country = 'Argentina' && isNotNull(pangoLineage))
+      .filter(country = 'Argentina')
       .groupBy({countArgentina:=count()}, {pangoLineage})
       .map({pangoLineageArgentina:=pangoLineage})
-      .project({pangoLineageArgentina, countArgentina}),
+      .project({pangoLineageArgentina}),
     pangoLineage = pangoLineageArgentina,
     type := leftAnti
   )
-  .orderBy({countSwitzerland.desc(), pangoLineage})
+  .orderBy({countSwitzerland.desc()})
   .limit(20)`,
     },
 ];
