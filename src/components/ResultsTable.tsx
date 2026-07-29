@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { classifyColumns, sequenceUnit } from '../lib/sequences';
+import { getPaginationItems, getPageWindow } from '../lib/pagination';
 import SequenceViewer from './SequenceViewer';
 import type { QueryRow, QueryValue, SequenceViewerState } from '../lib/types';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
@@ -36,7 +37,15 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
     const [viewer, setViewer] = useState<SequenceViewerState | null>(null);
     const [columnWidthState, setColumnWidthState] = useState<ColumnWidthState>({ columnKey: '', widths: {} });
     const [dragState, setDragState] = useState<DragState | null>(null);
+    const [pageIndex, setPageIndex] = useState(0);
+    const tableRef = useRef<HTMLDivElement>(null);
     const data = rows ?? [];
+    const page = getPageWindow(data.length, pageIndex);
+    const pageRows = useMemo(() => data.slice(page.start, page.end), [data, page.end, page.start]);
+    const paginationItems = useMemo(
+        () => getPaginationItems(page.pageIndex, page.pageCount),
+        [page.pageCount, page.pageIndex],
+    );
 
     const columns = useMemo(() => {
         const set = new Set<string>();
@@ -49,6 +58,15 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
         const adjustedWidths = columnWidthState.columnKey === columnKey ? columnWidthState.widths : {};
         return columns.map((column) => adjustedWidths[column] ?? columnWidth(column, classified[column].isAligned));
     }, [columnKey, columnWidthState, columns, classified]);
+
+    useEffect(() => {
+        setPageIndex(0);
+        setViewer(null);
+    }, [rows]);
+
+    useEffect(() => {
+        if (pageIndex !== page.pageIndex) setPageIndex(page.pageIndex);
+    }, [page.pageIndex, pageIndex]);
 
     useEffect(() => {
         if (!dragState) return;
@@ -97,10 +115,19 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
         setViewer({
             type: 'alignment',
             title: column,
-            entries: data
-                .map((row, index) => ({ label: String(index + 1), sequence: row[column] }))
+            entries: pageRows
+                .map((row, index) => ({ label: String(page.start + index + 1), sequence: row[column] }))
                 .filter((entry): entry is { label: string; sequence: string } => typeof entry.sequence === 'string'),
         });
+
+    const goToPage = (nextPageIndex: number) => {
+        const nextPage = getPageWindow(data.length, nextPageIndex).pageIndex;
+        if (nextPage === page.pageIndex) return;
+
+        setViewer(null);
+        setPageIndex(nextPage);
+        requestAnimationFrame(() => tableRef.current?.scrollIntoView({ block: 'start' }));
+    };
 
     const startResize = (column: string, width: number, event: ReactPointerEvent<HTMLButtonElement>) => {
         event.preventDefault();
@@ -123,7 +150,10 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
 
     return (
         <>
-            <div className='mt-3 max-w-full overflow-auto rounded-box border border-base-300'>
+            <div
+                ref={tableRef}
+                className='mt-3 max-w-full scroll-mt-20 overflow-auto rounded-box border border-base-300'
+            >
                 <table className='table-pin-rows table table-fixed table-xs font-mono' style={{ width: tableWidth }}>
                     <colgroup>
                         <col style={{ width: ROW_NUM_WIDTH }} />
@@ -160,23 +190,83 @@ export default function ResultsTable({ rows }: { rows: QueryRow[] }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {data.map((row, index) => (
-                            <tr className='border-b border-base-300 last:border-b-0 hover:bg-base-200/50' key={index}>
-                                <td className='text-right text-base-content/60 select-none'>{index + 1}</td>
-                                {columns.map((column, i) => (
-                                    <Cell
-                                        key={column}
-                                        value={row[column]}
-                                        isSequence={classified[column].isSequence}
-                                        width={widths[i]}
-                                        onView={() => openSingle(column, row, index)}
-                                    />
-                                ))}
-                            </tr>
-                        ))}
+                        {pageRows.map((row, index) => {
+                            const rowIndex = page.start + index;
+                            return (
+                                <tr
+                                    className='border-b border-base-300 last:border-b-0 hover:bg-base-200/50'
+                                    key={rowIndex}
+                                >
+                                    <td className='text-right text-base-content/60 select-none'>{rowIndex + 1}</td>
+                                    {columns.map((column, i) => (
+                                        <Cell
+                                            key={column}
+                                            value={row[column]}
+                                            isSequence={classified[column].isSequence}
+                                            width={widths[i]}
+                                            onView={() => openSingle(column, row, rowIndex)}
+                                        />
+                                    ))}
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
+            {page.pageCount > 1 && (
+                <div className='mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+                    <p className='text-xs text-base-content/60' aria-live='polite'>
+                        Rows {(page.start + 1).toLocaleString()}–{page.end.toLocaleString()} of{' '}
+                        {data.length.toLocaleString()}
+                    </p>
+                    <nav className='max-w-full overflow-x-auto pb-1' aria-label='Results pages'>
+                        <div className='join'>
+                            <button
+                                type='button'
+                                className='btn join-item btn-sm'
+                                aria-label='Previous results page'
+                                disabled={page.pageIndex === 0}
+                                onClick={() => goToPage(page.pageIndex - 1)}
+                            >
+                                <span className='sm:hidden' aria-hidden='true'>
+                                    ‹
+                                </span>
+                                <span className='hidden sm:inline'>Previous</span>
+                            </button>
+                            {paginationItems.map((item) =>
+                                typeof item === 'number' ? (
+                                    <button
+                                        type='button'
+                                        className={`btn join-item btn-sm ${item === page.pageIndex + 1 ? 'btn-active' : ''}`}
+                                        aria-label={`Go to results page ${item}`}
+                                        aria-current={item === page.pageIndex + 1 ? 'page' : undefined}
+                                        key={item}
+                                        onClick={() => goToPage(item - 1)}
+                                    >
+                                        {item}
+                                    </button>
+                                ) : (
+                                    <span className='btn btn-disabled join-item btn-sm' aria-hidden='true' key={item}>
+                                        …
+                                    </span>
+                                ),
+                            )}
+                            <button
+                                type='button'
+                                className='btn join-item btn-sm'
+                                aria-label='Next results page'
+                                disabled={page.pageIndex === page.pageCount - 1}
+                                onClick={() => goToPage(page.pageIndex + 1)}
+                            >
+                                <span className='sm:hidden' aria-hidden='true'>
+                                    ›
+                                </span>
+                                <span className='hidden sm:inline'>Next</span>
+                            </button>
+                        </div>
+                    </nav>
+                </div>
+            )}
             <SequenceViewer viewer={viewer} onClose={() => setViewer(null)} />
         </>
     );
