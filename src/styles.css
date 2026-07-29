@@ -234,37 +234,6 @@
     min-height: 3rem;
 }
 
-.site-brand img {
-    width: 1.75rem;
-    height: 1.75rem;
-    background: var(--color-base-100);
-    image-rendering: auto;
-}
-
-.site-brand span {
-    color: var(--color-neutral-content);
-    font-size: 0.9rem;
-    font-weight: 650;
-    letter-spacing: 0.12em;
-}
-
-.site-brand span::before {
-    color: #57d69b;
-    content: '> ';
-}
-
-.site-brand span::after {
-    color: #57d69b;
-    content: '_';
-    animation: cursor-blink 1.1s steps(2, jump-none) infinite;
-}
-
-@keyframes cursor-blink {
-    50% {
-        opacity: 0;
-    }
-}
-
 .site-nav a,
 .site-header .btn {
     border: 1px solid transparent;

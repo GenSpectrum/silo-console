@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import logoUrl from '../silo-logo-icon-only.png';
+import logoUrl from '../silo-logo-white.png';
 
 const navigation = [
     { to: '/', label: 'Home', end: true },
@@ -32,9 +32,8 @@ export default function Layout({ children }: { children: ReactNode }) {
             <header className='site-header sticky top-0 z-40 border-b border-base-300 bg-base-100/95 backdrop-blur'>
                 <div className='site-navbar navbar mx-auto min-h-16 w-full max-w-7xl px-4 lg:px-6'>
                     <div className='navbar-start'>
-                        <Link className='site-brand flex items-center gap-2 hover:no-underline' to='/'>
-                            <img className='h-9 w-auto' src={logoUrl} alt='' aria-hidden='true' />
-                            <span className='text-xl font-bold tracking-wide'>SILO</span>
+                        <Link className='site-brand flex items-center hover:no-underline' to='/' aria-label='Home'>
+                            <img className='h-10 w-auto' src={logoUrl} alt='' aria-hidden='true' />
                         </Link>
                     </div>
                     <nav className='site-nav navbar-center hidden lg:block' aria-label='Main navigation'>
