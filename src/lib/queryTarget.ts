@@ -30,7 +30,3 @@ export async function runBoundedTarget(target: QueryTarget, rawQuery: string) {
         throw error;
     }
 }
-
-export function runTargetQuery(target: QueryTarget, rawQuery: string, returnAllRows: boolean) {
-    return returnAllRows ? target.run(rawQuery) : runBoundedTarget(target, rawQuery);
-}

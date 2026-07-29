@@ -49,17 +49,12 @@ export default function ExercisePage() {
                 <div className='badge border-info/30 bg-info/8 text-info'>Fixed training server</div>
             </div>
 
-            <ExerciseDescription text={exercise.question} />
+            <ExerciseDescription text={exercise.question} outputExample={exercise.outputExample} />
             <p className='mb-3 text-sm text-base-content/60'>
                 Write a query and run it. The result is compared with the reference answer without considering row
                 order.
             </p>
-            <QueryRunner
-                key={slug}
-                target={exerciseTarget}
-                referenceQuery={exercise.answer}
-                returnAllRows={exercise.returnAllRows}
-            />
+            <QueryRunner key={slug} target={exerciseTarget} referenceQuery={exercise.answer} />
 
             <div className='mt-6 space-y-3'>
                 <details className='collapse border border-base-300 bg-base-100'>
@@ -110,32 +105,23 @@ export default function ExercisePage() {
     );
 }
 
-function ExerciseDescription({ text }: { text: string }) {
-    const blocks = text.split('~~~');
-
+function ExerciseDescription({ text, outputExample }: { text: string; outputExample: string }) {
     return (
         <div className='card my-5 border border-base-300 bg-base-200 card-sm'>
             <div className='card-body gap-0'>
-                {blocks.map((block, index) =>
-                    index % 2 === 1 ? (
-                        <pre
-                            className='my-3 max-w-full overflow-x-auto rounded-field border border-base-300 bg-base-100 p-3 font-mono text-xs'
-                            key={index}
-                        >
-                            <code>{block.trim()}</code>
-                        </pre>
-                    ) : (
-                        block
-                            .trim()
-                            .split(/\n{2,}/)
-                            .filter(Boolean)
-                            .map((paragraph, paragraphIndex) => (
-                                <p className='mb-2 last:mb-0' key={`${index}-${paragraphIndex}`}>
-                                    {paragraph.replace(/\n/g, ' ')}
-                                </p>
-                            ))
-                    ),
-                )}
+                {text
+                    .trim()
+                    .split(/\n{2,}/)
+                    .filter(Boolean)
+                    .map((paragraph, index) => (
+                        <p className='mb-2 last:mb-0' key={index}>
+                            {paragraph.replace(/\n/g, ' ')}
+                        </p>
+                    ))}
+                <p className='mt-3 mb-1 text-sm font-semibold'>The output should have this shape:</p>
+                <pre className='my-2 max-w-full overflow-x-auto rounded-field border border-base-300 bg-base-100 p-3 font-mono text-xs'>
+                    <code>{outputExample}</code>
+                </pre>
             </div>
         </div>
     );

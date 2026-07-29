@@ -17,10 +17,10 @@ export type Exercise = {
     slug: string;
     title: string;
     question: string;
+    outputExample: string;
     answer: string;
     explanation: string;
     documentation: { label: string; to: string }[];
-    returnAllRows?: boolean;
 };
 
 export const exercises: Exercise[] = [
@@ -28,6 +28,9 @@ export const exercises: Exercise[] = [
         slug: 'count-switzerland',
         title: 'Count sequences from Switzerland',
         question: 'Count all sequences from Switzerland.',
+        outputExample: `count
+-----
+1234`,
         explanation:
             'Start with the complete table and filter it to rows whose country equals Switzerland. The filtered rows still have the original schema. Then use groupBy with count() and no grouping columns to reduce all matching rows to one count.',
         documentation: [
@@ -43,6 +46,9 @@ export const exercises: Exercise[] = [
         title: 'Retrieve Basel sequences',
         question:
             'Retrieve the 20 most recent sequences from Basel-Stadt, Switzerland, showing the GenBank accession, date, unaligned nucleotide sequence, aligned nucleotide sequence and S amino acid sequence.',
+        outputExample: `genbankAccession | date       | unaligned_main | main    | S
+----------------- | ---------- | -------------- | ------- | ------
+AB123456          | 2024-05-10 | ACGT...        | ACGT... | MFV...`,
         explanation:
             'Use both location conditions in one filter. Ordering by date descending puts the most recent records first. Projecting selects the requested columns, and an explicit limit makes the requested result size part of the query.',
         documentation: [
@@ -60,6 +66,10 @@ export const exercises: Exercise[] = [
         title: 'Lineage counts in early 2021',
         question:
             'For sequences collected between 1 January 2021 and 30 June 2021, count the sequences per pangoLineage and return the 20 most frequent lineages, most frequent first.',
+        outputExample: `pangoLineage | count
+------------ | -----
+B.1.1.7      | 1234
+B.1.351      | 987`,
         explanation:
             'between applies an inclusive lower and upper date bound. After filtering, groupBy produces one row per lineage with its count. The count column only exists after that aggregation, so ordering by it follows groupBy.',
         documentation: [
@@ -76,9 +86,13 @@ export const exercises: Exercise[] = [
         slug: 'worldwide-spain-lineage-counts',
         title: 'Compare worldwide and Spanish lineage counts',
         question:
-            'Return every pango lineage with its worldwide sequence count and its sequence count from Spain. Include lineages that have no sequences from Spain. Sort by the worldwide count, highest first.',
+            'Return the 50 most frequent pango lineages with their worldwide sequence count and their sequence count from Spain. Include lineages that have no sequences from Spain. Sort by the worldwide count, highest first.',
+        outputExample: `pangoLineage | countWorld | countSpain
+------------ | ---------- | ----------
+BA.2         | 1234       | 42
+XBB          | 987        | null`,
         explanation:
-            'Build one aggregation for worldwide counts and another for Spanish counts. Give the lineage column on the Spanish side a distinct name, then use a left join so every worldwide lineage is retained even when Spain has no matching row. Project the requested columns and order by the worldwide count.',
+            'Build one aggregation for worldwide counts and another for Spanish counts. Give the lineage column on the Spanish side a distinct name, then use a left join so worldwide lineages are retained even when Spain has no matching row. Project the requested columns, order by the worldwide count, and keep the first 50 rows.',
         documentation: [
             { label: 'join', to: '/docs/reference/query-language#join' },
             { label: 'groupBy', to: '/docs/reference/query-language#group-by' },
@@ -95,14 +109,18 @@ export const exercises: Exercise[] = [
     type := left
   )
   .project({pangoLineage, countWorld, countSpain})
-  .orderBy({countWorld.desc()})`,
-        returnAllRows: true,
+  .orderBy({countWorld.desc()})
+  .limit(50)`,
     },
     {
         slug: 'submissions-by-iso-week',
         title: 'Submissions by ISO week',
         question:
             'Summarize sequences collected in 2024 by ISO calendar week. Return the week number and sequence count, ordered chronologically.',
+        outputExample: `week | count
+---- | -----
+1    | 1234
+2    | 987`,
         explanation:
             'First restrict the input to dates in 2024. isoWeek returns a week number, and map gives that computed value the column name week. Grouping can then use the new column before orderBy arranges the weekly rows chronologically.',
         documentation: [
@@ -120,6 +138,10 @@ export const exercises: Exercise[] = [
         title: 'Sequences with a mutation',
         question:
             'For sequences that carry a mutation at nucleotide position 23403, show the strain, country, date and pangoLineage. Order by strain and return the first 20 rows.',
+        outputExample: `strain     | country     | date       | pangoLineage
+---------- | ----------- | ---------- | ------------
+sample-001 | Switzerland | 2021-01-15 | B.1.1.7
+sample-002 | Germany     | 2021-01-16 | B.1.1.7`,
         explanation:
             'hasMutation tests whether the sample differs from the configured nucleotide reference at one position, without requiring a particular alternative nucleotide. The remaining operations shape, order, and bound the matching records.',
         documentation: [
@@ -140,6 +162,9 @@ export const exercises: Exercise[] = [
         title: 'Mutations within a lineage',
         question:
             "List the nucleotide mutations (on the 'main' sequence) that occur in at least 5% of sequences belonging to lineage B.1.1.7 including its sublineages. Return at most 20 rows.",
+        outputExample: `mutationFrom | mutationTo | position | sequenceName | proportion | coverage | count
+------------ | ---------- | -------- | ------------ | ---------- | -------- | -----
+A            | G          | 23403    | main         | 0.42       | 1200     | 504`,
         explanation:
             'The lineage predicate first selects the population to analyze. mutations then aggregates every qualifying nucleotide change across those input rows. Its threshold concerns prevalence within the filtered population, and sequenceNames restricts the aggregation to main.',
         documentation: [
@@ -156,6 +181,9 @@ export const exercises: Exercise[] = [
         title: 'Combine multiple conditions',
         question:
             'Count the sequences from Germany that belong to B.1.1.7 (including sublineages) and carry at least 2 of these three nucleotide mutations: T at position 241, T at position 3037, G at position 23403.',
+        outputExample: `count
+-----
+1234`,
         explanation:
             'Combine the country, lineage, and mutation-profile conditions with &&. nOf counts how many child predicates match each row; with a count of 2 and the default behavior, two or all three nucleotide conditions are accepted. A final ungrouped count reduces the matches to one row.',
         documentation: [
@@ -179,6 +207,10 @@ export const exercises: Exercise[] = [
         title: 'Paginated results',
         question:
             'Order the sequences by strain, skip the first 50 and return the next 25, showing only the strain, country and date.',
+        outputExample: `strain     | country | date
+---------- | ------- | ----------
+sample-051 | Germany | 2021-01-15
+sample-052 | France  | 2021-01-16`,
         explanation:
             'Pagination needs a stable order before rows are skipped. offset removes the first 50 ordered rows and limit keeps the next 25. project can be applied afterward because ordering and pagination preserve all input columns.',
         documentation: [
@@ -196,6 +228,10 @@ export const exercises: Exercise[] = [
         title: 'Amino acid insertions',
         question:
             'List the 20 most common amino acid insertions in the S protein. For each insertion, show its position, inserted symbols and the number of sequences carrying it, with the most common first.',
+        outputExample: `position | insertedSymbols | count
+-------- | --------------- | -----
+214      | EPE             | 1234
+215      | R               | 987`,
         explanation:
             'aminoAcidInsertions aggregates all insertions found in the input rows and restricts them to the S protein. It already produces position, insertedSymbols, and count columns. Project the requested fields, order by count descending, and use the remaining fields to make ties deterministic.',
         documentation: [
@@ -215,6 +251,11 @@ export const exercises: Exercise[] = [
         slug: 'countries-in',
         title: 'Filter with a set of values',
         question: 'Count the sequences from Germany, France and Italy, broken down by country, most frequent first.',
+        outputExample: `country | count
+------- | -----
+Germany | 1234
+France  | 987
+Italy   | 654`,
         explanation:
             'in tests each row against a set of accepted country values. groupBy uses country as the grouping column, producing one count per country, and orderBy places the largest group first.',
         documentation: [
@@ -231,6 +272,10 @@ export const exercises: Exercise[] = [
         title: 'Regex filter and a computed column',
         question:
             "For sequences whose division matches the regular expression 'Basel.*', return the strain together with an added column 'area' set to the constant 'Basel'. Order by strain and return the first 10 rows.",
+        outputExample: `strain     | area
+---------- | -----
+sample-001 | Basel
+sample-002 | Basel`,
         explanation:
             'like uses an RE2 regular expression, so Basel.* accepts values beginning with Basel. map adds the constant-valued area column to every matching row. project then narrows the output to strain and the new column.',
         documentation: [
@@ -249,6 +294,10 @@ export const exercises: Exercise[] = [
         title: 'Amino acid mutations grouped by target',
         question:
             'Among sequences from Switzerland, take the amino acid mutations on the S gene that occur in at least 10% of sequences, then count how many of those mutations lead to each resulting symbol (mutationTo). Most frequent first.',
+        outputExample: `mutationTo | count
+---------- | -----
+Y          | 12
+G          | 8`,
         explanation:
             'The first filter defines the population. aminoAcidMutations turns its sequence changes into an aggregated table with one row per qualifying mutation, including mutationTo. The following groupBy counts rows in that new table by their resulting symbol; it does not count original sequences.',
         documentation: [
@@ -266,6 +315,9 @@ export const exercises: Exercise[] = [
         title: 'Mutation profile distance',
         question:
             'Count the sequences whose S gene is within 2 amino acid differences of a profile that has Y at position 501 and R at position 452.',
+        outputExample: `count
+-----
+1234`,
         explanation:
             'aminoAcidMutationProfile compares each S sequence with the supplied profile. distance allows up to two conservative differences from that profile. The filter keeps matching records, and groupBy with no grouping columns returns their total count.',
         documentation: [
@@ -285,18 +337,12 @@ export const exercises: Exercise[] = [
     {
         slug: 's-position-symbols',
         title: 'Co-occurring S protein changes',
-        question: `In the sequences from Switzerland, investigate the co-occurrence patterns at S protein positions 69, 70 and 501. Return one row for each combination together with the count.
-
-The output should have this shape:
-
-~~~
-pos_69 | pos_70 | pos_501 | count
+        question:
+            'In the sequences from Switzerland, investigate the co-occurrence patterns at S protein positions 69, 70 and 501. Return one row for each combination together with the count. Order the combinations by count descending so the most common S-position pattern appears first.',
+        outputExample: `pos_69 | pos_70 | pos_501 | count
 ------ | ------ | ------- | -----
 H      | V      | N       | 1234
--      | -      | Y       | 987
-~~~
-
-Order the combinations by count descending so the most common S-position pattern appears first.`,
+-      | -      | Y       | 987`,
         explanation:
             'at reads the symbol at each 1-based S position. map names those three values as new columns. Grouping by all three columns creates one row per observed combination, while count records how many Swiss sequences have that pattern.',
         documentation: [
@@ -314,16 +360,11 @@ Order the combinations by count descending so the most common S-position pattern
         title: 'Compare recent German and US submissions',
         question: `Build one harmonized table for recent SARS-CoV-2 submissions from Germany and the USA. Include the strain name, collection date, pango lineage and a place column.
 
-For Germany, place should identify the country (i.e. always just be "Germany"). For the USA, place should identify the division. Use the 100 most recent German rows and the 100 most recent US rows, then sort the combined 200-row table by date descending.
-
-The combined output should look like one table with rows from both sources:
-
-~~~
-strain        | date       | pangoLineage | place
+For Germany, place should identify the country (i.e. always just be "Germany"). For the USA, place should identify the division. Use the 100 most recent German rows and the 100 most recent US rows, then sort the combined 200-row table by date descending.`,
+        outputExample: `strain        | date       | pangoLineage | place
 ------------- | ---------- | ------------ | ----------
 sample-DE-001 | 2024-05-10 | JN.1         | Germany
-sample-US-001 | 2024-05-09 | JN.1.4       | California
-~~~`,
+sample-US-001 | 2024-05-09 | JN.1.4       | California`,
         explanation:
             'Build two pipelines with the same four output columns and compatible types. map gives place a different source in each branch, while project puts both schemas in the same order. unionAll concatenates the bounded branches, after which the combined table can be sorted.',
         documentation: [
