@@ -22,3 +22,7 @@ export function buildConsoleShareHash(server: string, query: string) {
     if (query.trim()) fragment.set('query', query);
     return `#${fragment.toString()}`;
 }
+
+export function buildConsoleSelectionHash(server: string) {
+    return buildConsoleShareHash(server, '');
+}

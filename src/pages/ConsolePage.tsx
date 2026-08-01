@@ -1,8 +1,9 @@
 import { lazy, Suspense, type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import QueryRunner from '../components/QueryRunner';
 import { DEFAULT_CONSOLE_SERVER, RHYDB_WASM_ENABLED, RHYDB_WASM_VERSION } from '../config';
 import { fetchRhyDBInfo, type RhyDBInfo } from '../lib/rhydbInfo';
-import { buildConsoleShareUrl, normalizeServerUrl } from '../lib/serverUrl';
+import { buildConsoleSelectionHash, buildConsoleShareUrl, normalizeServerUrl } from '../lib/serverUrl';
 import { usePageMeta } from '../lib/pageMeta';
 import type { QueryRow } from '../lib/types';
 import { publicInstances, type PublicInstance } from '../data/publicInstances';
@@ -40,7 +41,9 @@ type SchemaState =
 
 export default function ConsolePage() {
     usePageMeta('Console', 'Connect a RhyDB instance, inspect its schema, and run RhyDB queries in the browser.');
-    const sharedParams = new URLSearchParams(window.location.hash.slice(1));
+    const location = useLocation();
+    const navigate = useNavigate();
+    const sharedParams = new URLSearchParams(location.hash.slice(1));
     const sharedServer = sharedParams.get('server');
     const initialQuery = sharedParams.get('query') || '';
     const [serverInput, setServerInput] = useState(() => sharedServer || storedServer() || DEFAULT_CONSOLE_SERVER);
@@ -56,11 +59,14 @@ export default function ConsolePage() {
     const [exportingState, setExportingState] = useState(false);
     const [exportProgress, setExportProgress] = useState<LocalRhyDBProgress | null>(null);
     const [exportError, setExportError] = useState<string | null>(null);
-    const sharedConnectionStarted = useRef(false);
+    const remoteConnectionRequest = useRef(0);
+    const schemaRequest = useRef(0);
     const activeLocalClient = useRef<LocalRhyDBClient | null>(null);
 
     useEffect(
         () => () => {
+            remoteConnectionRequest.current += 1;
+            schemaRequest.current += 1;
             activeLocalClient.current?.dispose();
         },
         [],
@@ -73,11 +79,14 @@ export default function ConsolePage() {
     }, [linkCopied]);
 
     const loadSchema = useCallback(async (target: QueryTarget) => {
+        const request = ++schemaRequest.current;
         setSchema({ status: 'loading', rows: [], error: null });
         try {
             const result = await target.run('default.schema()');
+            if (request !== schemaRequest.current) return;
             setSchema({ status: 'ready', rows: result.rows, error: null });
         } catch (error) {
+            if (request !== schemaRequest.current) return;
             setSchema({
                 status: 'error',
                 rows: [],
@@ -87,45 +96,85 @@ export default function ConsolePage() {
     }, []);
 
     const connectTo = useCallback(
-        async (serverValue: string, publicInstance?: PublicInstance) => {
+        async (serverValue: string) => {
+            const request = ++remoteConnectionRequest.current;
+            schemaRequest.current += 1;
             setConnecting(true);
             setConnectionError(null);
             setLinkCopied(false);
+            setSchema({ status: 'idle', rows: [], error: null });
             try {
                 const server = normalizeServerUrl(serverValue);
-                const info = await fetchRhyDBInfo(server);
-                const target = remoteQueryTarget(server);
+                const publicInstance = publicInstances.find(
+                    (instance) => normalizeServerUrl(instance.server) === server,
+                );
                 setServerInput(server);
+                setConnectionMode(publicInstance ? 'public' : 'custom');
+                if (publicInstance) setSelectedPublicId(publicInstance.id);
+                const info = await fetchRhyDBInfo(server);
+                if (request !== remoteConnectionRequest.current) return;
+                const target = remoteQueryTarget(server);
                 setConnection({ kind: 'remote', server, info, target, publicInstance });
                 localStorage.setItem(STORAGE_KEY, server);
                 void loadSchema(target);
             } catch (error) {
+                if (request !== remoteConnectionRequest.current) return;
                 setConnection(null);
                 setSchema({ status: 'idle', rows: [], error: null });
                 setConnectionError(error instanceof Error ? error.message : String(error));
             } finally {
-                setConnecting(false);
+                if (request === remoteConnectionRequest.current) setConnecting(false);
             }
         },
         [loadSchema],
     );
 
     useEffect(() => {
-        if (!sharedServer || sharedConnectionStarted.current) return;
-        sharedConnectionStarted.current = true;
-        const publicInstance = publicInstances.find((instance) => instance.server === sharedServer);
-        void connectTo(sharedServer, publicInstance);
+        if (sharedServer) {
+            void connectTo(sharedServer);
+            return;
+        }
+
+        remoteConnectionRequest.current += 1;
+        schemaRequest.current += 1;
+        setConnecting(false);
+        setConnection((current) => (current?.kind === 'remote' ? null : current));
+        setSchema({ status: 'idle', rows: [], error: null });
+        setConnectionError(null);
+        setLinkCopied(false);
     }, [connectTo, sharedServer]);
+
+    useEffect(() => {
+        setQuery(initialQuery);
+        setAutoRunSharedQuery(Boolean(sharedServer && initialQuery.trim()));
+    }, [initialQuery, sharedServer]);
+
+    const selectRemoteServer = (serverValue: string) => {
+        try {
+            const server = normalizeServerUrl(serverValue);
+            const hash = buildConsoleSelectionHash(server);
+            setConnecting(true);
+            setConnectionError(null);
+            if (location.hash === hash) {
+                void connectTo(server);
+                return;
+            }
+            navigate({ pathname: location.pathname, search: '', hash });
+        } catch (error) {
+            setConnecting(false);
+            setConnectionError(error instanceof Error ? error.message : String(error));
+        }
+    };
 
     const connectPublic = (event: FormEvent) => {
         event.preventDefault();
         const instance = publicInstances.find((item) => item.id === selectedPublicId) || publicInstances[0];
-        void connectTo(instance.server, instance);
+        selectRemoteServer(instance.server);
     };
 
     const connectCustom = (event: FormEvent) => {
         event.preventDefault();
-        void connectTo(serverInput);
+        selectRemoteServer(serverInput);
     };
 
     const selectMode = (mode: ConnectionMode) => {
@@ -140,6 +189,10 @@ export default function ConsolePage() {
         ) {
             return;
         }
+        if (connection?.kind === 'remote') {
+            navigate({ pathname: location.pathname, search: '', hash: '' });
+            return;
+        }
         activeLocalClient.current?.dispose();
         activeLocalClient.current = null;
         setConnection(null);
@@ -151,6 +204,8 @@ export default function ConsolePage() {
     };
 
     const connectLocal = (client: LocalRhyDBClient, info: RhyDBInfo, canDownloadState: boolean) => {
+        remoteConnectionRequest.current += 1;
+        schemaRequest.current += 1;
         activeLocalClient.current?.dispose();
         activeLocalClient.current = client;
         setConnection({
@@ -202,7 +257,7 @@ export default function ConsolePage() {
                         <span className='font-semibold text-base-content'>Runs in your browser.</span>{' '}
                         {RHYDB_WASM_ENABLED
                             ? 'Remote queries go directly to the selected RhyDB instance. Local files and processing stay on this device.'
-                            : 'Queries and results go only between your browser and the selected RhyDB instance; nothing is sent to us.'}
+                            : 'Queries and results go only between your browser and the selected RhyDB instance; they are not sent to us.'}
                     </p>
                 </div>
             )}
@@ -284,11 +339,6 @@ export default function ConsolePage() {
                             <div className='mt-2 alert border-error/25 bg-error/8 text-sm text-error' role='alert'>
                                 {connectionError}
                             </div>
-                        )}
-                        {connectionMode !== 'local' && (
-                            <p className='mt-2 text-xs text-base-content/50'>
-                                The selected address is stored only in this browser.
-                            </p>
                         )}
                     </div>
                 </section>
@@ -397,7 +447,7 @@ export default function ConsolePage() {
                             )}
                         </div>
                         <QueryRunner
-                            key={connection.target.id}
+                            key={`${connection.target.id}-${location.key}`}
                             target={connection.target}
                             initialQuery={initialQuery}
                             onQueryChange={setQuery}

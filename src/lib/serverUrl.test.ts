@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildConsoleShareHash, buildConsoleShareUrl, normalizeServerUrl } from './serverUrl';
+import {
+    buildConsoleSelectionHash,
+    buildConsoleShareHash,
+    buildConsoleShareUrl,
+    normalizeServerUrl,
+} from './serverUrl';
 
 describe('normalizeServerUrl', () => {
     it('trims whitespace and trailing slashes', () => {
@@ -38,6 +43,14 @@ describe('buildConsoleShareHash', () => {
     it('encodes a server and query for an in-app console link', () => {
         expect(buildConsoleShareHash('https://rhydb.example.org/api', "default.filter(country = 'Switzerland')")).toBe(
             '#server=https%3A%2F%2Frhydb.example.org%2Fapi&query=default.filter%28country+%3D+%27Switzerland%27%29',
+        );
+    });
+});
+
+describe('buildConsoleSelectionHash', () => {
+    it('reflects the selected server without adding a query', () => {
+        expect(buildConsoleSelectionHash('https://rhydb.example.org/api')).toBe(
+            '#server=https%3A%2F%2Frhydb.example.org%2Fapi',
         );
     });
 });
