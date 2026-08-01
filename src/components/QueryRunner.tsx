@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { runBoundedTarget, type QueryTarget } from '../lib/queryTarget';
 import { resultsMatch } from '../lib/compareResults';
 import { celebrate } from '../lib/celebrate';
@@ -46,17 +46,18 @@ type QueryRunnerProps = {
     onAutoRun?: () => void;
 };
 
+// Lets a parent replace the editor content, as if the user had typed it.
+export type QueryRunnerHandle = {
+    setQuery: (query: string) => void;
+};
+
 // Reusable query widget: editor + Run button + status/meta/error + results table.
 // When `referenceQuery` is provided (exercise mode), the user's result is
 // compared against the reference answer and a Correct!/Wrong! verdict is shown.
-export default function QueryRunner({
-    target,
-    initialQuery = '',
-    referenceQuery,
-    onQueryChange,
-    autoRun = false,
-    onAutoRun,
-}: QueryRunnerProps) {
+function QueryRunner(
+    { target, initialQuery = '', referenceQuery, onQueryChange, autoRun = false, onAutoRun }: QueryRunnerProps,
+    ref: React.Ref<QueryRunnerHandle>,
+) {
     const [query, setQuery] = useState(initialQuery);
     const [running, setRunning] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -76,6 +77,8 @@ export default function QueryRunner({
         },
         [onQueryChange],
     );
+
+    useImperativeHandle(ref, () => ({ setQuery: handleChange }), [handleChange]);
 
     useEffect(() => {
         if (verdict?.status === 'correct') celebrate();
@@ -214,3 +217,5 @@ export default function QueryRunner({
         </div>
     );
 }
+
+export default forwardRef(QueryRunner);

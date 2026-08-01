@@ -1,12 +1,13 @@
 import { lazy, Suspense, type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import QueryRunner from '../components/QueryRunner';
+import QueryRunner, { type QueryRunnerHandle } from '../components/QueryRunner';
 import { DEFAULT_CONSOLE_SERVER, RHYDB_WASM_ENABLED, RHYDB_WASM_VERSION } from '../config';
 import { fetchRhyDBInfo, type RhyDBInfo } from '../lib/rhydbInfo';
 import { buildConsoleSelectionHash, buildConsoleShareUrl, normalizeServerUrl } from '../lib/serverUrl';
 import { usePageMeta } from '../lib/pageMeta';
 import type { QueryRow } from '../lib/types';
-import { publicInstances, type PublicInstance } from '../data/publicInstances';
+import { publicInstances, sarsCov2PublicInstance, type PublicInstance } from '../data/publicInstances';
+import { getRandomSarsCov2Query } from '../data/randomQueries';
 import { remoteQueryTarget, type QueryTarget } from '../lib/queryTarget';
 import type { LocalRhyDBClient } from '../lib/localRhyDBClient';
 import type { LocalRhyDBEvent, LocalRhyDBProgress } from '../lib/localRhyDBProtocol';
@@ -59,6 +60,7 @@ export default function ConsolePage() {
     const [exportingState, setExportingState] = useState(false);
     const [exportProgress, setExportProgress] = useState<LocalRhyDBProgress | null>(null);
     const [exportError, setExportError] = useState<string | null>(null);
+    const queryRunner = useRef<QueryRunnerHandle>(null);
     const remoteConnectionRequest = useRef(0);
     const schemaRequest = useRef(0);
     const activeLocalClient = useRef<LocalRhyDBClient | null>(null);
@@ -228,6 +230,10 @@ export default function ConsolePage() {
         } catch {
             setLinkCopied(false);
         }
+    };
+
+    const insertRandomQuery = () => {
+        queryRunner.current?.setQuery(getRandomSarsCov2Query(query));
     };
 
     const downloadProcessedState = async () => {
@@ -435,18 +441,35 @@ export default function ConsolePage() {
                                     A <code>.limit(100)</code> is added when the query does not set a limit.
                                 </p>
                             </div>
-                            {connection.kind === 'remote' && (
-                                <div
-                                    className='tooltip tooltip-bottom tooltip-end'
-                                    data-tip='The link includes the server URL and query in its browser-only fragment'
-                                >
-                                    <button className='btn btn-outline btn-sm' type='button' onClick={copyShareLink}>
-                                        {linkCopied ? 'Link copied' : 'Copy share link'}
-                                    </button>
-                                </div>
-                            )}
+                            <div className='flex flex-wrap gap-2'>
+                                {connection.kind === 'remote' &&
+                                    connection.publicInstance?.id === sarsCov2PublicInstance.id && (
+                                        <button
+                                            className='btn btn-outline btn-sm'
+                                            type='button'
+                                            onClick={insertRandomQuery}
+                                        >
+                                            Insert random query
+                                        </button>
+                                    )}
+                                {connection.kind === 'remote' && (
+                                    <div
+                                        className='tooltip tooltip-bottom tooltip-end'
+                                        data-tip='The link includes the server URL and query in its browser-only fragment'
+                                    >
+                                        <button
+                                            className='btn btn-outline btn-sm'
+                                            type='button'
+                                            onClick={copyShareLink}
+                                        >
+                                            {linkCopied ? 'Link copied' : 'Copy share link'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         <QueryRunner
+                            ref={queryRunner}
                             key={`${connection.target.id}-${location.key}`}
                             target={connection.target}
                             initialQuery={initialQuery}
