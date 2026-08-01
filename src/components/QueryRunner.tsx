@@ -6,7 +6,7 @@ import { parseErrorPosition } from '../lib/parseError';
 import QueryEditor from './QueryEditor';
 import ResultsTable from './ResultsTable';
 import type { ErrorPosition, QueryResult, QueryRow } from '../lib/types';
-import type { SiloQueryError } from '../lib/runQuery';
+import type { RhyDBQueryError } from '../lib/runQuery';
 
 // Caches reference-answer results by `${base}\n${query}` so re-running an
 // exercise doesn't repeatedly re-query the server for the same answer.
@@ -109,10 +109,10 @@ export default function QueryRunner({
                 }
             }
         } catch (err) {
-            const queryError = err as SiloQueryError;
+            const queryError = err as RhyDBQueryError;
             setError(queryError.message);
-            const position = parseErrorPosition(queryError.siloMessage);
-            if (position) setErrorMark({ position, message: queryError.siloMessage || queryError.message });
+            const position = parseErrorPosition(queryError.rhydbMessage);
+            if (position) setErrorMark({ position, message: queryError.rhydbMessage || queryError.message });
         } finally {
             setRunning(false);
         }

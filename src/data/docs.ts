@@ -13,12 +13,12 @@ export type DocumentationSection = {
 export const documentationSections: DocumentationSection[] = [
     {
         title: 'Explanation',
-        description: "SILO's data and query model.",
+        description: "RhyDB's data and query model.",
         pages: [
             {
-                path: '/docs/explanation/what-is-silo',
-                title: 'What is SILO?',
-                summary: 'What SILO does and how it relates to other tools.',
+                path: '/docs/explanation/what-is-rhydb',
+                title: 'What is RhyDB?',
+                summary: 'What RhyDB does and how it relates to other tools.',
             },
             {
                 path: '/docs/explanation/data-model',
@@ -27,8 +27,8 @@ export const documentationSections: DocumentationSection[] = [
             },
             {
                 path: '/docs/explanation/from-sql',
-                title: 'SILO for SQL users',
-                summary: 'A comparison of SILO pipelines with SQL.',
+                title: 'RhyDB for SQL users',
+                summary: 'A comparison of RhyDB pipelines with SQL.',
             },
         ],
     },

@@ -3,7 +3,7 @@ import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { setDiagnostics } from '@codemirror/lint';
 import { toggleLineComment } from '@codemirror/commands';
 import type { EditorView } from '@codemirror/view';
-import { siloQueryLanguage } from '../lib/siloQueryLanguage';
+import { rhydbQueryLanguage } from '../lib/rhydbQueryLanguage';
 import { diagnosticFor } from '../lib/diagnostic';
 import type { ErrorPosition } from '../lib/types';
 
@@ -17,7 +17,7 @@ type QueryEditorProps = {
     minHeight?: string;
 };
 
-// CodeMirror editor for SILO's query language. Ctrl/Cmd+Enter runs the query, Ctrl/Cmd+/ toggles comments, and an
+// CodeMirror editor for RhyDB's query language. Ctrl/Cmd+Enter runs the query, Ctrl/Cmd+/ toggles comments, and an
 // `errorPosition` highlights the offending character with `errorMessage` on hover.
 export default function QueryEditor({
     value,
@@ -32,7 +32,7 @@ export default function QueryEditor({
 
     const extensions = useMemo(
         () => [
-            siloQueryLanguage(),
+            rhydbQueryLanguage(),
             // Prec.highest beats basicSetup's default Mod-Enter binding (insert blank line).
             Prec.highest(
                 keymap.of([
@@ -82,7 +82,7 @@ export default function QueryEditor({
                     foldGutter: false,
                     autocompletion: false,
                 }}
-                placeholder='Type a SILO query — Ctrl/Cmd+Enter to run'
+                placeholder='Type a RhyDB query — Ctrl/Cmd+Enter to run'
             />
         </div>
     );

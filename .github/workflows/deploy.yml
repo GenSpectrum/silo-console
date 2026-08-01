@@ -29,13 +29,13 @@ jobs:
             - name: Build
               run: npm run build
               env:
-                  # Served from https://<owner>.github.io/silo-console/ — the repo name is the base path.
-                  VITE_BASE: /silo-console/
-                  # Optional: set a repository variable VITE_SILO_DEFAULT_SERVER to override the default
-                  # SILO server. Empty falls back to the built-in default (see src/config.ts).
-                  VITE_SILO_DEFAULT_SERVER: ${{ vars.VITE_SILO_DEFAULT_SERVER }}
+                  # Use the repository name as the GitHub Pages base path.
+                  VITE_BASE: /${{ github.event.repository.name }}/
+                  # Optional: set a repository variable VITE_RHYDB_DEFAULT_SERVER to override the default
+                  # RhyDB server. Empty falls back to the built-in default (see src/config.ts).
+                  VITE_RHYDB_DEFAULT_SERVER: ${{ vars.VITE_RHYDB_DEFAULT_SERVER }}
                   # Exercises use a separate, non-editable staging target.
-                  VITE_SILO_EXERCISE_SERVER: ${{ vars.VITE_SILO_EXERCISE_SERVER }}
+                  VITE_RHYDB_EXERCISE_SERVER: ${{ vars.VITE_RHYDB_EXERCISE_SERVER }}
             - uses: actions/upload-pages-artifact@v3
               with:
                   path: dist

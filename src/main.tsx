@@ -8,7 +8,7 @@ import ExercisesLayout from './pages/ExercisesLayout';
 import HomePage from './pages/HomePage';
 import DocsLayout from './pages/docs/DocsLayout';
 import DocsOverviewPage from './pages/docs/DocsOverviewPage';
-import WhatIsSiloPage from './pages/docs/WhatIsSiloPage';
+import WhatIsRhyDBPage from './pages/docs/WhatIsRhyDBPage';
 import DataModelPage from './pages/docs/DataModelPage';
 import SqlComparisonPage from './pages/docs/SqlComparisonPage';
 import LanguageReferencePage from './pages/docs/LanguageReferencePage';
@@ -39,7 +39,7 @@ ReactDOM.createRoot(root).render(
                         <Route path='console' element={<ConsolePage />} />
                         <Route path='docs' element={<DocsLayout />}>
                             <Route index element={<DocsOverviewPage />} />
-                            <Route path='explanation/what-is-silo' element={<WhatIsSiloPage />} />
+                            <Route path='explanation/what-is-rhydb' element={<WhatIsRhyDBPage />} />
                             <Route path='explanation/data-model' element={<DataModelPage />} />
                             <Route path='explanation/from-sql' element={<SqlComparisonPage />} />
                             <Route path='reference/query-language' element={<LanguageReferencePage />} />

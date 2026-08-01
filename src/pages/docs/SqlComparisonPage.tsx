@@ -3,8 +3,8 @@ import { CodeBlock, DocumentationPage, Note } from '../../components/Documentati
 export default function SqlComparisonPage() {
     return (
         <DocumentationPage
-            title='SILO for SQL users'
-            lead='SILO uses table pipelines rather than SQL clauses. This page maps common SQL operations to SILO.'
+            title='RhyDB for SQL users'
+            lead='RhyDB uses table pipelines rather than SQL clauses. This page maps common SQL operations to RhyDB.'
         >
             <h2>Correspondence</h2>
             <div className='my-4 overflow-x-auto rounded-box border border-base-300'>
@@ -12,7 +12,7 @@ export default function SqlComparisonPage() {
                     <thead>
                         <tr>
                             <th>SQL concept</th>
-                            <th>SILO query-language operation</th>
+                            <th>RhyDB query-language operation</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -96,7 +96,7 @@ WHERE date >= DATE '2024-01-01'
 GROUP BY country
 ORDER BY count DESC
 LIMIT 10;`}</CodeBlock>
-            <CodeBlock>{`-- SILO query language
+            <CodeBlock>{`-- RhyDB query language
 default
   .filter(date >= '2024-01-01'::date)
   .groupBy({count := count()}, {country})
@@ -109,17 +109,17 @@ default
                 <li>
                     Records and sets use braces, and <code>:=</code> assigns a name inside a record.
                 </li>
-                <li>The available tables and columns are configured per SILO instance.</li>
+                <li>The available tables and columns are configured per RhyDB instance.</li>
                 <li>
                     Sequence predicates and aggregations understand reference coordinates, mutations, and ambiguity.
                 </li>
                 <li>
-                    SILO currently provides <code>count()</code> as its aggregate function; it is not a general SQL
+                    RhyDB currently provides <code>count()</code> as its aggregate function; it is not a general SQL
                     engine.
                 </li>
             </ul>
             <Note title='Reading a query'>
-                Read a SILO query from top to bottom as a series of intermediate tables. Operations such as{' '}
+                Read a RhyDB query from top to bottom as a series of intermediate tables. Operations such as{' '}
                 <code>map</code>, <code>project</code>, and <code>groupBy</code> change the schema.
             </Note>
         </DocumentationPage>

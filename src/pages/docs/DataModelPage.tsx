@@ -5,16 +5,16 @@ export default function DataModelPage() {
     return (
         <DocumentationPage
             title='Data model and queries'
-            lead='SILO queries transform tables through a pipeline. Sequence operations use reference coordinates.'
+            lead='RhyDB queries transform tables through a pipeline. Sequence operations use reference coordinates.'
         >
             <h2>Tables, rows, and columns</h2>
             <p>
-                A SILO table contains rows with the same schema. A row usually represents one sample or sequence record.
-                Columns contain metadata or sequences and have types such as string, integer, date, boolean, nucleotide
-                sequence, or amino-acid sequence.
+                A RhyDB table contains rows with the same schema. A row usually represents one sample or sequence
+                record. Columns contain metadata or sequences and have types such as string, integer, date, boolean,
+                nucleotide sequence, or amino-acid sequence.
             </p>
             <p>
-                Table and column names are configured by each SILO instance. Examples in this documentation use the
+                Table and column names are configured by each RhyDB instance. Examples in this documentation use the
                 table
                 <code>default</code> and columns such as <code>country</code>, <code>date</code>, <code>main</code>, and
                 <code>S</code>; another instance can expose a different schema.
@@ -54,7 +54,7 @@ export default function DataModelPage() {
                 <li>Ambiguous symbols express incomplete information and affect exact and relaxed matching.</li>
             </ul>
             <Note>
-                Positions in SILO's sequence functions are 1-based. A sequence name is always explicit because an
+                Positions in RhyDB's sequence functions are 1-based. A sequence name is always explicit because an
                 instance may contain several genome segments or translated genes.
             </Note>
 

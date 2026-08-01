@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
-import { validateRawBundle } from './localSiloFiles';
+import { validateRawBundle } from './localRhyDBFiles';
 
 describe('validateRawBundle', () => {
     it('applies defaults, matches required files, and normalizes browser paths', async () => {

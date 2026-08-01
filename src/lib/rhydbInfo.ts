@@ -1,11 +1,11 @@
-export type SiloInfo = {
+export type RhyDBInfo = {
     version: string;
     sequenceCount: number;
     horizontalBitmapsSize?: number;
     verticalBitmapsSize?: number;
 };
 
-export async function fetchSiloInfo(base: string): Promise<SiloInfo> {
+export async function fetchRhyDBInfo(base: string): Promise<RhyDBInfo> {
     let response: Response;
     try {
         response = await fetch(`${base}/info`);
@@ -18,13 +18,13 @@ export async function fetchSiloInfo(base: string): Promise<SiloInfo> {
     }
 
     const value: unknown = await response.json();
-    if (!isSiloInfo(value)) {
-        throw new Error('The /info response does not look like a SILO instance.');
+    if (!isRhyDBInfo(value)) {
+        throw new Error('The /info response does not look like a RhyDB instance.');
     }
     return value;
 }
 
-function isSiloInfo(value: unknown): value is SiloInfo {
+function isRhyDBInfo(value: unknown): value is RhyDBInfo {
     if (!value || typeof value !== 'object') return false;
     const candidate = value as Record<string, unknown>;
     return typeof candidate.version === 'string' && typeof candidate.sequenceCount === 'number';

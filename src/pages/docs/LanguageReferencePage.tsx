@@ -4,7 +4,7 @@ export default function LanguageReferencePage() {
     return (
         <DocumentationPage
             title='Query-language reference'
-            lead='A SILO query is a pipeline of operations that starts from a table name and produces a table of result rows.'
+            lead='A RhyDB query is a pipeline of operations that starts from a table name and produces a table of result rows.'
         >
             <h2 id='structure'>Query structure</h2>
             <CodeBlock>{`default

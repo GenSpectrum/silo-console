@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import logoUrl from '../silo-logo-white.png';
+import logoUrl from '../rhydb-logo-white.png';
 
 const navigation = [
     { to: '/', label: 'Home', end: true },

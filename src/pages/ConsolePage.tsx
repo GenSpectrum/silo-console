@@ -1,31 +1,31 @@
 import { lazy, Suspense, type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import QueryRunner from '../components/QueryRunner';
-import { DEFAULT_CONSOLE_SERVER, SILO_WASM_ENABLED, SILO_WASM_VERSION } from '../config';
-import { fetchSiloInfo, type SiloInfo } from '../lib/siloInfo';
+import { DEFAULT_CONSOLE_SERVER, RHYDB_WASM_ENABLED, RHYDB_WASM_VERSION } from '../config';
+import { fetchRhyDBInfo, type RhyDBInfo } from '../lib/rhydbInfo';
 import { buildConsoleShareUrl, normalizeServerUrl } from '../lib/serverUrl';
 import { usePageMeta } from '../lib/pageMeta';
 import type { QueryRow } from '../lib/types';
 import { publicInstances, type PublicInstance } from '../data/publicInstances';
 import { remoteQueryTarget, type QueryTarget } from '../lib/queryTarget';
-import type { LocalSiloClient } from '../lib/localSiloClient';
-import type { LocalSiloEvent, LocalSiloProgress } from '../lib/localSiloProtocol';
+import type { LocalRhyDBClient } from '../lib/localRhyDBClient';
+import type { LocalRhyDBEvent, LocalRhyDBProgress } from '../lib/localRhyDBProtocol';
 
-const STORAGE_KEY = 'silo-console-server';
+const STORAGE_KEY = 'rhydb-console-server';
 const LocalDataSetup =
-    import.meta.env.VITE_SILO_WASM_ENABLED === 'true' ? lazy(() => import('../components/LocalDataSetup')) : null;
+    import.meta.env.VITE_RHYDB_WASM_ENABLED === 'true' ? lazy(() => import('../components/LocalDataSetup')) : null;
 
 type RemoteConnection = {
     kind: 'remote';
     server: string;
-    info: SiloInfo;
+    info: RhyDBInfo;
     target: QueryTarget;
     publicInstance?: PublicInstance;
 };
 
 type LocalConnection = {
     kind: 'local';
-    info: SiloInfo;
-    target: LocalSiloClient;
+    info: RhyDBInfo;
+    target: LocalRhyDBClient;
     canDownloadState: boolean;
 };
 
@@ -39,7 +39,7 @@ type SchemaState =
     | { status: 'error'; rows: QueryRow[]; error: string };
 
 export default function ConsolePage() {
-    usePageMeta('Console', 'Connect a SILO instance, inspect its schema, and run SILO queries in the browser.');
+    usePageMeta('Console', 'Connect a RhyDB instance, inspect its schema, and run RhyDB queries in the browser.');
     const sharedParams = new URLSearchParams(window.location.hash.slice(1));
     const sharedServer = sharedParams.get('server');
     const initialQuery = sharedParams.get('query') || '';
@@ -54,10 +54,10 @@ export default function ConsolePage() {
     const [linkCopied, setLinkCopied] = useState(false);
     const [autoRunSharedQuery, setAutoRunSharedQuery] = useState(Boolean(sharedServer && initialQuery.trim()));
     const [exportingState, setExportingState] = useState(false);
-    const [exportProgress, setExportProgress] = useState<LocalSiloProgress | null>(null);
+    const [exportProgress, setExportProgress] = useState<LocalRhyDBProgress | null>(null);
     const [exportError, setExportError] = useState<string | null>(null);
     const sharedConnectionStarted = useRef(false);
-    const activeLocalClient = useRef<LocalSiloClient | null>(null);
+    const activeLocalClient = useRef<LocalRhyDBClient | null>(null);
 
     useEffect(
         () => () => {
@@ -93,7 +93,7 @@ export default function ConsolePage() {
             setLinkCopied(false);
             try {
                 const server = normalizeServerUrl(serverValue);
-                const info = await fetchSiloInfo(server);
+                const info = await fetchRhyDBInfo(server);
                 const target = remoteQueryTarget(server);
                 setServerInput(server);
                 setConnection({ kind: 'remote', server, info, target, publicInstance });
@@ -136,7 +136,7 @@ export default function ConsolePage() {
     const changeTarget = () => {
         if (
             connection?.kind === 'local' &&
-            !window.confirm('Change data and clear the local SILO database from this tab?')
+            !window.confirm('Change data and clear the local RhyDB database from this tab?')
         ) {
             return;
         }
@@ -150,12 +150,12 @@ export default function ConsolePage() {
         setExportProgress(null);
     };
 
-    const connectLocal = (client: LocalSiloClient, info: SiloInfo, canDownloadState: boolean) => {
+    const connectLocal = (client: LocalRhyDBClient, info: RhyDBInfo, canDownloadState: boolean) => {
         activeLocalClient.current?.dispose();
         activeLocalClient.current = client;
         setConnection({
             kind: 'local',
-            info: { ...info, version: SILO_WASM_VERSION },
+            info: { ...info, version: RHYDB_WASM_VERSION },
             target: client,
             canDownloadState,
         });
@@ -180,10 +180,10 @@ export default function ConsolePage() {
         setExportingState(true);
         setExportError(null);
         try {
-            const blob = await connection.target.saveState((event: LocalSiloEvent) => {
+            const blob = await connection.target.saveState((event: LocalRhyDBEvent) => {
                 if (event.type === 'progress') setExportProgress(event.value);
             });
-            downloadBlob(blob, 'silo-state.zip');
+            downloadBlob(blob, 'rhydb-state.zip');
         } catch (error) {
             setExportError(error instanceof Error ? error.message : String(error));
         } finally {
@@ -200,9 +200,9 @@ export default function ConsolePage() {
                 <div className='mt-4 alert border-info/25 bg-info/8 px-3 py-2 text-sm'>
                     <p className='text-base-content/65'>
                         <span className='font-semibold text-base-content'>Runs in your browser.</span>{' '}
-                        {SILO_WASM_ENABLED
-                            ? 'Remote queries go directly to the selected SILO instance. Local files and processing stay on this device.'
-                            : 'Queries and results go only between your browser and the selected SILO instance; nothing is sent to us.'}
+                        {RHYDB_WASM_ENABLED
+                            ? 'Remote queries go directly to the selected RhyDB instance. Local files and processing stay on this device.'
+                            : 'Queries and results go only between your browser and the selected RhyDB instance; nothing is sent to us.'}
                     </p>
                 </div>
             )}
@@ -212,7 +212,7 @@ export default function ConsolePage() {
                     <div className='card-body'>
                         <h2 className='card-title'>Choose where to query</h2>
                         <div
-                            className={`tabs-box mt-2 tabs grid w-full ${SILO_WASM_ENABLED ? 'grid-cols-3' : 'grid-cols-2'} sm:w-fit`}
+                            className={`tabs-box mt-2 tabs grid w-full ${RHYDB_WASM_ENABLED ? 'grid-cols-3' : 'grid-cols-2'} sm:w-fit`}
                             role='tablist'
                             aria-label='Connection method'
                         >
@@ -236,7 +236,7 @@ export default function ConsolePage() {
                             >
                                 Custom URL
                             </button>
-                            {SILO_WASM_ENABLED && (
+                            {RHYDB_WASM_ENABLED && (
                                 <button
                                     className={`tab ${connectionMode === 'local' ? 'tab-active' : ''}`}
                                     type='button'
@@ -268,7 +268,7 @@ export default function ConsolePage() {
                             <Suspense
                                 fallback={
                                     <div className='mt-4 flex items-center gap-2 text-sm text-base-content/60'>
-                                        <span className='loading loading-sm loading-spinner' /> Loading local SILO…
+                                        <span className='loading loading-sm loading-spinner' /> Loading local RhyDB…
                                     </div>
                                 }
                             >
@@ -276,7 +276,7 @@ export default function ConsolePage() {
                             </Suspense>
                         ) : (
                             <div className='mt-4 alert border-error/25 bg-error/8 text-sm text-error'>
-                                Local SILO is unavailable in this build.
+                                Local RhyDB is unavailable in this build.
                             </div>
                         )}
 
@@ -425,7 +425,7 @@ function PublicInstanceForm({
     return (
         <form className='mt-4' onSubmit={onSubmit}>
             <fieldset className='min-w-0'>
-                <legend className='mb-2 text-sm font-medium'>Public SILO instances</legend>
+                <legend className='mb-2 text-sm font-medium'>Public RhyDB instances</legend>
                 <div className='overflow-hidden rounded-box border border-base-300'>
                     {publicInstances.map((instance) => (
                         <label
@@ -476,14 +476,14 @@ function CustomServerForm({
                 instance must allow requests from this site through its CORS policy.
             </p>
             <label className='form-control mt-4 w-full'>
-                <span className='label-text mb-2 font-medium'>SILO server URL</span>
+                <span className='label-text mb-2 font-medium'>RhyDB server URL</span>
                 <input
                     className='input w-full'
                     type='url'
                     required
                     spellCheck={false}
                     value={server}
-                    placeholder='https://silo.example.org'
+                    placeholder='https://rhydb.example.org'
                     onChange={(event) => onServerChange(event.target.value)}
                 />
             </label>

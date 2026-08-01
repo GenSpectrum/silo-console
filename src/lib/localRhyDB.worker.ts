@@ -9,9 +9,9 @@ import {
     ZipWriter,
     type Entry,
 } from '@zip.js/zip.js';
-import type { LocalSiloEvent, LocalSiloProgress, LocalSiloRequest, LocalSiloResponse } from './localSiloProtocol';
+import type { LocalRhyDBEvent, LocalRhyDBProgress, LocalRhyDBRequest, LocalRhyDBResponse } from './localRhyDBProtocol';
 import type { QueryResult, QueryRow } from './types';
-import type { SiloInfo } from './siloInfo';
+import type { RhyDBInfo } from './rhydbInfo';
 
 type EmscriptenFs = {
     analyzePath(path: string): { exists: boolean };
@@ -24,7 +24,7 @@ type EmscriptenFs = {
     writeFile(path: string, data: Uint8Array | string): void;
 };
 
-type SiloModule = {
+type RhyDBModule = {
     FS: EmscriptenFs;
     preprocess(configPath: string): number;
     load(stateDirectory: string): number;
@@ -37,17 +37,17 @@ type SiloModule = {
 
 const worker = self as DedicatedWorkerGlobalScope;
 const MAX_EXPANDED_STATE_BYTES = 2 * 1024 * 1024 * 1024;
-let modulePromise: Promise<SiloModule> | null = null;
+let modulePromise: Promise<RhyDBModule> | null = null;
 let currentHandle: number | null = null;
 let requestQueue = Promise.resolve();
 
-worker.onmessage = (event: MessageEvent<LocalSiloRequest>) => {
+worker.onmessage = (event: MessageEvent<LocalRhyDBRequest>) => {
     requestQueue = requestQueue.then(() => handleRequest(event.data));
 };
 
-async function handleRequest(request: LocalSiloRequest) {
+async function handleRequest(request: LocalRhyDBRequest) {
     try {
-        let value: SiloInfo | QueryResult | Blob | undefined;
+        let value: RhyDBInfo | QueryResult | Blob | undefined;
         switch (request.type) {
             case 'preprocess':
                 value = await preprocess(request.config, request.files);
@@ -68,20 +68,21 @@ async function handleRequest(request: LocalSiloRequest) {
         post({ id: request.id, ok: true, value });
     } catch (error) {
         const message = exceptionMessage(await modulePromise?.catch(() => null), error);
-        post({ id: request.id, ok: false, error: message, siloMessage: message });
+        post({ id: request.id, ok: false, error: message, rhydbMessage: message });
     }
 }
 
 async function getModule() {
     if (!modulePromise) {
-        progress('loading', 'Loading SILO…');
-        const loaderUrl = new URL(`${import.meta.env.BASE_URL}silo-wasm/silo_wasm.js`, worker.location.origin).href;
-        modulePromise = import(/* @vite-ignore */ loaderUrl).then(async ({ default: createSiloModule }) => {
-            return (await createSiloModule({
-                locateFile: (filename: string) => new URL(filename, loaderUrl).href,
+        progress('loading', 'Loading RhyDB…');
+        const loaderUrl = new URL(`${import.meta.env.BASE_URL}rhydb-wasm/rhydb_wasm.js`, worker.location.origin).href;
+        modulePromise = import(/* @vite-ignore */ loaderUrl).then(async ({ default: createRhyDBModule }) => {
+            return (await createRhyDBModule({
+                locateFile: (filename: string) =>
+                    new URL(filename.endsWith('.wasm') ? 'rhydb_wasm.wasm' : filename, loaderUrl).href,
                 print: (message: unknown) => log(String(message)),
                 printErr: (message: unknown) => log(String(message)),
-            })) as SiloModule;
+            })) as RhyDBModule;
         });
     }
     return modulePromise;
@@ -198,7 +199,7 @@ async function dispose() {
     disposeHandle(module);
 }
 
-function disposeHandle(module: SiloModule) {
+function disposeHandle(module: RhyDBModule) {
     if (currentHandle !== null) module.dispose(currentHandle);
     currentHandle = null;
 }
@@ -233,12 +234,12 @@ function validateEntries(entries: Entry[]) {
     if (!entries.some((entry) => !entry.directory)) throw new Error('The processed-state ZIP is empty.');
 }
 
-function parseInfo(raw: string): SiloInfo {
-    const value = JSON.parse(raw) as Partial<SiloInfo>;
+function parseInfo(raw: string): RhyDBInfo {
+    const value = JSON.parse(raw) as Partial<RhyDBInfo>;
     if (typeof value.version !== 'string' || typeof value.sequenceCount !== 'number') {
-        throw new Error('SILO returned invalid database information.');
+        throw new Error('RhyDB returned invalid database information.');
     }
-    return value as SiloInfo;
+    return value as RhyDBInfo;
 }
 
 function parseNdjson(raw: string) {
@@ -303,7 +304,7 @@ function singleTopLevelDirectory(fs: EmscriptenFs, root: string) {
     }
 }
 
-function exceptionMessage(module: SiloModule | null | undefined, error: unknown) {
+function exceptionMessage(module: RhyDBModule | null | undefined, error: unknown) {
     if (module) {
         try {
             const value = module.getExceptionMessage(error);
@@ -327,7 +328,7 @@ function describeErrorValue(value: unknown) {
     }
 }
 
-function progress(stage: LocalSiloProgress['stage'], message: string, completedBytes?: number, totalBytes?: number) {
+function progress(stage: LocalRhyDBProgress['stage'], message: string, completedBytes?: number, totalBytes?: number) {
     post({ event: { type: 'progress', value: { stage, message, completedBytes, totalBytes } } });
 }
 
@@ -335,6 +336,6 @@ function log(message: string) {
     post({ event: { type: 'log', message } });
 }
 
-function post(message: LocalSiloResponse) {
+function post(message: LocalRhyDBResponse) {
     worker.postMessage(message);
 }

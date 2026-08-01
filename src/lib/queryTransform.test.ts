@@ -27,7 +27,7 @@ describe('withLimit', () => {
 });
 
 describe('isOrderingError', () => {
-    it('matches the SILO ordering rejection', () => {
+    it('matches the RhyDB ordering rejection', () => {
         expect(isOrderingError('Offset and limit can only be applied if the output ... has ordering')).toBe(true);
     });
 

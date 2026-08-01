@@ -5,7 +5,7 @@ export function DocumentationPage({ title, lead, children }: { title: string; le
     usePageMeta(title);
 
     return (
-        <article className='documentation-page prose-silo w-full max-w-4xl text-[15px] leading-relaxed'>
+        <article className='documentation-page prose-rhydb w-full max-w-4xl text-[15px] leading-relaxed'>
             <h1 className='text-3xl font-bold tracking-tight'>{title}</h1>
             {lead && <p className='mt-3 text-lg leading-relaxed text-base-content/65'>{lead}</p>}
             <div className='mt-8'>{children}</div>

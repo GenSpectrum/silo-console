@@ -24,7 +24,7 @@ export default function HomePage() {
                             Analytical database for sequences
                         </h1>
                         <p className='mt-6 max-w-2xl text-lg leading-relaxed text-base-content/70 sm:text-xl'>
-                            SILO stores genomic sequences and their metadata. Its query language supports filtering,
+                            RhyDB stores genomic sequences and their metadata. Its query language supports filtering,
                             aggregation, and queries on reference-aligned nucleotide and amino-acid sequences.
                         </p>
                         <div className='mt-8 flex flex-wrap gap-3'>
@@ -46,7 +46,7 @@ export default function HomePage() {
                             <span className='size-2.5 rounded-full bg-error' />
                             <span className='size-2.5 rounded-full bg-warning' />
                             <span className='size-2.5 rounded-full bg-success' />
-                            <span className='ml-2 text-xs text-neutral-content/55'>SILO query language</span>
+                            <span className='ml-2 text-xs text-neutral-content/55'>RhyDB query language</span>
                             <Link className='hero-execute btn ml-auto btn-xs' to={exampleShareLink}>
                                 Execute
                             </Link>
@@ -91,7 +91,7 @@ function GetStartedSection() {
                 <div className='text-center'>
                     <h2 className='text-3xl font-bold tracking-tight'>Get started</h2>
                     <p className='mt-3 text-base-content/70'>
-                        Read the documentation, work through exercises, or query a SILO instance.
+                        Read the documentation, work through exercises, or query a RhyDB instance.
                     </p>
                 </div>
                 <div className='mt-8 grid gap-5 md:grid-cols-3'>
@@ -99,7 +99,7 @@ function GetStartedSection() {
                         to='/docs'
                         eyebrow='Read'
                         title='Documentation'
-                        description='Read about SILO data and queries, or look up query-language and HTTP API behavior.'
+                        description='Read about RhyDB data and queries, or look up query-language and HTTP API behavior.'
                         action='Browse documentation'
                     />
                     <PathCard
@@ -113,7 +113,7 @@ function GetStartedSection() {
                         to='/console'
                         eyebrow='Use'
                         title='Console'
-                        description='Connect to a public SILO instance or query your own data directly from the browser (using WebAssembly)'
+                        description='Connect to a public RhyDB instance or query your own data directly from the browser (using WebAssembly)'
                         action='Open the console'
                     />
                 </div>
@@ -127,9 +127,9 @@ function ProjectsSection() {
         <section className='projects-section mx-auto max-w-7xl px-4 py-14 lg:px-6 lg:py-20'>
             <div className='grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center'>
                 <div>
-                    <h2 className='text-2xl font-bold tracking-tight'>SILO in other projects</h2>
+                    <h2 className='text-2xl font-bold tracking-tight'>RhyDB in other projects</h2>
                     <p className='mt-3 leading-relaxed text-base-content/70'>
-                        GenSpectrum uses SILO for genomic data queries. Loculus uses SILO as its query engine, and
+                        GenSpectrum uses RhyDB for genomic data queries. Loculus uses RhyDB as its query engine, and
                         Pathoplexus is built with Loculus.
                     </p>
                 </div>

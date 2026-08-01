@@ -4,7 +4,7 @@ import { EXERCISE_SERVER } from '../config';
 import { usePageMeta } from '../lib/pageMeta';
 
 export default function ExercisesListPage() {
-    usePageMeta('Exercises', "Exercises for SILO's query language on a fixed SARS-CoV-2 dataset.");
+    usePageMeta('Exercises', "Exercises for RhyDB's query language on a fixed SARS-CoV-2 dataset.");
 
     return (
         <div className='exercises-list w-full max-w-5xl'>

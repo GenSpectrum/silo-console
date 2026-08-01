@@ -107,6 +107,6 @@ const highlightStyle = HighlightStyle.define([
     { tag: t.variableName, color: '#1d1d1f' },
 ]);
 
-export function siloQueryLanguage() {
+export function rhydbQueryLanguage() {
     return new LanguageSupport(parser, [syntaxHighlighting(highlightStyle)]);
 }

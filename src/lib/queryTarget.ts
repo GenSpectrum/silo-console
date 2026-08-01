@@ -1,6 +1,6 @@
 import { buildCurlCommand } from './curlCommand';
 import { isOrderingError, withLimit } from './queryTransform';
-import { runQuery, type SiloQueryError } from './runQuery';
+import { runQuery, type RhyDBQueryError } from './runQuery';
 import type { QueryResult } from './types';
 
 export type QueryTarget = {
@@ -24,7 +24,7 @@ export async function runBoundedTarget(target: QueryTarget, rawQuery: string) {
     try {
         return await target.run(limited);
     } catch (error) {
-        if (limited !== rawQuery && isOrderingError((error as SiloQueryError).siloMessage)) {
+        if (limited !== rawQuery && isOrderingError((error as RhyDBQueryError).rhydbMessage)) {
             return target.run(rawQuery);
         }
         throw error;

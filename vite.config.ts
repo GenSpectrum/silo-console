@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 // `base` lets the app be served from a sub-path (e.g. GitHub Pages project sites).
 // Default is "/" for root deployments (nginx, custom domains).
 const base = process.env.VITE_BASE || '/';
-const wasmEnabled = process.env.VITE_SILO_WASM_ENABLED === 'true';
+const wasmEnabled = process.env.VITE_RHYDB_WASM_ENABLED === 'true';
 const isolationHeaders = wasmEnabled
     ? {
           'Cross-Origin-Opener-Policy': 'same-origin',

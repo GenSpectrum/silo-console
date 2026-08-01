@@ -1,5 +1,5 @@
 node_modules
 dist
 .generated-public
-.silo-wasm
+.rhydb-wasm
 *.log

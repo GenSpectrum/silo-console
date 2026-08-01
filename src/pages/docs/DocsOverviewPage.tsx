@@ -9,7 +9,7 @@ export default function DocsOverviewPage() {
         <div className='w-full max-w-5xl'>
             <h1 className='text-3xl font-bold tracking-tight'>Documentation</h1>
             <p className='mt-3 max-w-3xl text-lg leading-relaxed text-base-content/65'>
-                Explanations describe SILO's data and query model. Reference pages list query-language and HTTP API
+                Explanations describe RhyDB's data and query model. Reference pages list query-language and HTTP API
                 behavior. The exercises provide practice.
             </p>
             <div className='mt-8 grid gap-5 md:grid-cols-2'>

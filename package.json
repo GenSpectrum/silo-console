@@ -1,9 +1,9 @@
 {
-    "name": "silo-web-client",
+    "name": "rhydb-web-client",
     "version": "0.1.0",
     "private": true,
     "type": "module",
-    "description": "Web interface for querying and learning SILO",
+    "description": "Web interface for querying and learning RhyDB",
     "scripts": {
         "predev": "node scripts/prepare-wasm.mjs",
         "dev": "vite",

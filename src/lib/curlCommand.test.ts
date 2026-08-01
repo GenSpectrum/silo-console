@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { buildCurlCommand } from './curlCommand';
 
 describe('buildCurlCommand', () => {
-    it('builds the SILO query request with the bounded query', () => {
-        expect(buildCurlCommand('https://example.test/silo/', 'default.groupBy({count:=count()})')).toBe(
+    it('builds the RhyDB query request with the bounded query', () => {
+        expect(buildCurlCommand('https://example.test/rhydb/', 'default.groupBy({count:=count()})')).toBe(
             `curl \\
   -X POST \\
-  'https://example.test/silo/query' \\
+  'https://example.test/rhydb/query' \\
   -H 'Content-Type: text/plain' \\
   -H 'Accept: application/x-ndjson' \\
   --data-binary 'default.groupBy({count:=count()})

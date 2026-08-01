@@ -1,19 +1,19 @@
 import { isOrderingError, withLimit } from './queryTransform';
 import type { QueryResult, QueryRow } from './types';
 
-export type SiloQueryError = Error & {
-    siloMessage?: string;
+export type RhyDBQueryError = Error & {
+    rhydbMessage?: string;
 };
 
 function errorMessage(err: unknown) {
     return err instanceof Error ? err.message : String(err);
 }
 
-// Sends a SILO query to <base>/query and parses the NDJSON response. Returns
+// Sends a RhyDB query to <base>/query and parses the NDJSON response. Returns
 // { rows, dataVersion, executionMs, downloadMs, elapsedMs } on success — executionMs is the wait
 // until response headers arrive, downloadMs is the time to read the body, elapsedMs their sum.
 // Throws an Error whose message is a human-readable description on failure;
-// when the server returned a structured error, err.siloMessage holds its message.
+// when the server returned a structured error, err.rhydbMessage holds its message.
 export async function runQuery(base: string, query: string): Promise<QueryResult> {
     const t0 = performance.now();
 
@@ -37,16 +37,16 @@ export async function runQuery(base: string, query: string): Promise<QueryResult
 
     if (!response.ok) {
         let detail = raw;
-        let siloMessage;
+        let rhydbMessage;
         try {
             const parsed = JSON.parse(raw);
             detail = JSON.stringify(parsed, null, 2);
-            siloMessage = parsed.message;
+            rhydbMessage = parsed.message;
         } catch {
-            siloMessage = undefined;
+            rhydbMessage = undefined;
         }
-        const err: SiloQueryError = new Error('HTTP ' + response.status + ' ' + response.statusText + '\n\n' + detail);
-        err.siloMessage = siloMessage;
+        const err: RhyDBQueryError = new Error('HTTP ' + response.status + ' ' + response.statusText + '\n\n' + detail);
+        err.rhydbMessage = rhydbMessage;
         throw err;
     }
 
@@ -78,7 +78,7 @@ export async function runBounded(base: string, rawQuery: string) {
     try {
         return await runQuery(base, limited);
     } catch (err) {
-        if (limited !== rawQuery && isOrderingError((err as SiloQueryError).siloMessage)) {
+        if (limited !== rawQuery && isOrderingError((err as RhyDBQueryError).rhydbMessage)) {
             return await runQuery(base, rawQuery);
         }
         throw err;

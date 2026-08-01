@@ -4,7 +4,7 @@ export default function HttpApiReferencePage() {
     return (
         <DocumentationPage
             title='HTTP API reference'
-            lead='A running SILO instance exposes health and information endpoints and accepts plain-text queries over HTTP.'
+            lead='A running RhyDB instance exposes health and information endpoints and accepts plain-text queries over HTTP.'
         >
             <h2 id='query'>POST /query</h2>
             <p>Send the query as a plain-text request body. NDJSON is the default response format.</p>
@@ -12,7 +12,7 @@ export default function HttpApiReferencePage() {
   -H 'Content-Type: text/plain' \
   -H 'Accept: application/x-ndjson' \
   --data "default.groupBy({count := count()})" \
-  https://silo.example.org/query`}</CodeBlock>
+  https://rhydb.example.org/query`}</CodeBlock>
             <p>Each non-empty response line is an independent JSON object:</p>
             <CodeBlock>{`{"count":9430508}`}</CodeBlock>
 
@@ -26,12 +26,13 @@ export default function HttpApiReferencePage() {
   -H 'Content-Type: text/plain' \
   -H 'Accept: application/vnd.apache.arrow.stream' \
   --data 'default.limit(100)' \
-  https://silo.example.org/query \
+  https://rhydb.example.org/query \
   --output result.arrow`}</CodeBlock>
 
             <h2 id='info'>GET /info</h2>
             <p>
-                Return information about the loaded database, including the SILO version and number of sequence records.
+                Return information about the loaded database, including the RhyDB version and number of sequence
+                records.
             </p>
             <CodeBlock>{`{
   "version": "<git commit>",
@@ -96,7 +97,7 @@ export default function HttpApiReferencePage() {
                 </li>
             </ul>
             <Note title='Browser access'>
-                A static web console sends requests directly from the browser. The SILO instance must be reachable from
+                A static web console sends requests directly from the browser. The RhyDB instance must be reachable from
                 that browser and allow the site's origin through its CORS policy.
             </Note>
         </DocumentationPage>

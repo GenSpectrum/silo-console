@@ -1,11 +1,11 @@
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react';
-import { LocalSiloClient } from '../lib/localSiloClient';
-import { validateRawBundle, type RawBundleValidation } from '../lib/localSiloFiles';
-import type { LocalSiloEvent, LocalSiloProgress } from '../lib/localSiloProtocol';
-import type { SiloInfo } from '../lib/siloInfo';
+import { LocalRhyDBClient } from '../lib/localRhyDBClient';
+import { validateRawBundle, type RawBundleValidation } from '../lib/localRhyDBFiles';
+import type { LocalRhyDBEvent, LocalRhyDBProgress } from '../lib/localRhyDBProtocol';
+import type { RhyDBInfo } from '../lib/rhydbInfo';
 
 type LocalDataSetupProps = {
-    onReady(client: LocalSiloClient, info: SiloInfo, canDownloadState: boolean): void;
+    onReady(client: LocalRhyDBClient, info: RhyDBInfo, canDownloadState: boolean): void;
 };
 
 type SourceMode = 'raw' | 'state';
@@ -16,12 +16,12 @@ export default function LocalDataSetup({ onReady }: LocalDataSetupProps) {
     const [inputFiles, setInputFiles] = useState<File[]>([]);
     const [stateFile, setStateFile] = useState<File | null>(null);
     const [validation, setValidation] = useState<RawBundleValidation | null>(null);
-    const [progress, setProgress] = useState<LocalSiloProgress | null>(null);
+    const [progress, setProgress] = useState<LocalRhyDBProgress | null>(null);
     const [logs, setLogs] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [running, setRunning] = useState(false);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
-    const clientRef = useRef<LocalSiloClient | null>(null);
+    const clientRef = useRef<LocalRhyDBClient | null>(null);
     const supported = window.crossOriginIsolated === true && typeof Worker !== 'undefined' && 'WebAssembly' in window;
 
     useEffect(() => {
@@ -64,7 +64,7 @@ export default function LocalDataSetup({ onReady }: LocalDataSetupProps) {
         setError(null);
     };
 
-    const handleEvent = (event: LocalSiloEvent) => {
+    const handleEvent = (event: LocalRhyDBEvent) => {
         if (event.type === 'progress') {
             setProgress(event.value);
         } else {
@@ -79,7 +79,7 @@ export default function LocalDataSetup({ onReady }: LocalDataSetupProps) {
         setValidation(result);
         if (!result.ok) return;
 
-        const client = new LocalSiloClient();
+        const client = new LocalRhyDBClient();
         clientRef.current = client;
         setRunning(true);
         setError(null);
@@ -102,7 +102,7 @@ export default function LocalDataSetup({ onReady }: LocalDataSetupProps) {
     const loadState = async (event: FormEvent) => {
         event.preventDefault();
         if (!stateFile || running) return;
-        const client = new LocalSiloClient();
+        const client = new LocalRhyDBClient();
         clientRef.current = client;
         setRunning(true);
         setError(null);
@@ -131,7 +131,7 @@ export default function LocalDataSetup({ onReady }: LocalDataSetupProps) {
         <div className='mt-4'>
             {!supported && (
                 <div className='alert border-error/25 bg-error/8 text-sm text-error' role='alert'>
-                    Local SILO needs a cross-origin-isolated page with WebAssembly and worker support. Ask the site
+                    Local RhyDB needs a cross-origin-isolated page with WebAssembly and worker support. Ask the site
                     administrator to enable the required COOP and COEP response headers.
                 </div>
             )}
@@ -144,14 +144,14 @@ export default function LocalDataSetup({ onReady }: LocalDataSetupProps) {
             <div className='mt-4 grid gap-3 sm:grid-cols-2'>
                 <SourceCard
                     title='Prepare raw data'
-                    description='Run SILO preprocessing on an input bundle.'
+                    description='Run RhyDB preprocessing on an input bundle.'
                     selected={sourceMode === 'raw'}
                     disabled={running}
                     onClick={() => selectSourceMode('raw')}
                 />
                 <SourceCard
                     title='Open processed state'
-                    description='Skip preprocessing and open a SILO state ZIP.'
+                    description='Skip preprocessing and open a RhyDB state ZIP.'
                     selected={sourceMode === 'state'}
                     disabled={running}
                     onClick={() => selectSourceMode('state')}
@@ -219,7 +219,7 @@ export default function LocalDataSetup({ onReady }: LocalDataSetupProps) {
             ) : (
                 <form className='mt-5' onSubmit={loadState}>
                     <label className='form-control w-full'>
-                        <span className='label-text mb-2 font-medium'>Processed SILO state ZIP</span>
+                        <span className='label-text mb-2 font-medium'>Processed RhyDB state ZIP</span>
                         <input
                             className='file-input w-full'
                             type='file'
@@ -366,7 +366,7 @@ function SizeWarning({ totalBytes }: { totalBytes: number }) {
     return (
         <div className='mt-4 alert border-warning/30 bg-warning/10 text-sm' role='status'>
             The selected files total {formatBytes(totalBytes)}. Datasets above 500 MB may exceed browser memory after
-            SILO builds its indexes.
+            RhyDB builds its indexes.
         </div>
     );
 }
@@ -377,7 +377,7 @@ function ProgressPanel({
     logs,
     running,
 }: {
-    progress: LocalSiloProgress;
+    progress: LocalRhyDBProgress;
     elapsedSeconds: number;
     logs: string[];
     running: boolean;
@@ -397,7 +397,7 @@ function ProgressPanel({
             )}
             {logs.length > 0 && (
                 <details className='mt-3'>
-                    <summary className='cursor-pointer text-xs font-semibold'>SILO logs</summary>
+                    <summary className='cursor-pointer text-xs font-semibold'>RhyDB logs</summary>
                     <pre className='mt-2 max-h-48 overflow-auto rounded-box bg-neutral p-3 font-mono text-xs whitespace-pre-wrap text-neutral-content'>
                         {logs.join('\n')}
                     </pre>
