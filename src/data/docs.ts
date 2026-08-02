@@ -6,14 +6,12 @@ export type DocumentationPage = {
 
 export type DocumentationSection = {
     title: string;
-    description: string;
     pages: DocumentationPage[];
 };
 
 export const documentationSections: DocumentationSection[] = [
     {
         title: 'Explanation',
-        description: "RhyDB's data and query model.",
         pages: [
             {
                 path: '/docs/explanation/what-is-rhydb',
@@ -34,7 +32,6 @@ export const documentationSections: DocumentationSection[] = [
     },
     {
         title: 'Reference',
-        description: 'Query syntax, functions, and HTTP behavior.',
         pages: [
             {
                 path: '/docs/reference/query-language',

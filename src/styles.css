@@ -285,16 +285,6 @@
     letter-spacing: -0.07em;
 }
 
-.hero-copy h1::before {
-    display: block;
-    margin-bottom: 0.75rem;
-    color: var(--color-primary);
-    font-size: 0.7rem;
-    font-weight: 500;
-    letter-spacing: 0;
-    content: 'rhydb://database/sequence_analytics';
-}
-
 .hero-copy > p {
     max-width: 62ch;
     font-size: 0.95rem;

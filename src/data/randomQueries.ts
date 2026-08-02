@@ -6,7 +6,25 @@
 // validated against the SARS-CoV-2 instance: they run, return a non-empty
 // result, and stay small. They deliberately differ from the exercise reference
 // answers in src/data/exercises.ts so the two sets complement each other.
+
+// The query the landing page shows in its hero panel. The landing page renders it
+// without the comment and links to the Console with the comment included.
+export const landingPageQuery = `-- Ranks the most common combinations of pango lineage and S protein symbols at
+-- positions 69, 70 and 501 among sequences from Europe.
+default
+  .filter(region = 'Europe')
+  .map({"S[69]" := S.at(69), "S[70]" := S.at(70), "S[501]" := S.at(501)})
+  .groupBy({count := count()}, {pangoLineage, "S[69]", "S[70]", "S[501]"})
+  .orderBy({count.desc()})
+  .limit(10)`;
+
+// Drops the leading `--` description, for places that show a query without it.
+export function withoutLeadingComments(query: string) {
+    return query.replace(/^(?:--[^\n]*\n)+/, '');
+}
+
 export const sarsCov2RandomQueries = [
+    landingPageQuery,
     `-- Finds sequence counts by country from 2025 carrying the S:69 deletion.
 default
   .filter(

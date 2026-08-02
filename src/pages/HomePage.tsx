@@ -1,16 +1,12 @@
 import { Link } from 'react-router-dom';
 import { sarsCov2PublicInstance } from '../data/publicInstances';
+import { landingPageQuery, withoutLeadingComments } from '../data/randomQueries';
 import { usePageMeta } from '../lib/pageMeta';
 import { buildConsoleShareHash } from '../lib/serverUrl';
 
-const exampleQuery = `default
-  .filter(region = 'Europe')
-  .map({"S[69]" := S.at(69), "S[70]" := S.at(70), "S[501]" := S.at(501)})
-  .groupBy({count := count()}, {pangoLineage, "S[69]", "S[70]", "S[501]"})
-  .orderBy({count.desc()})
-  .limit(10)`;
+const exampleQuery = withoutLeadingComments(landingPageQuery);
 
-const exampleShareLink = `/console/${buildConsoleShareHash(sarsCov2PublicInstance.server, exampleQuery)}`;
+const exampleShareLink = `/console/${buildConsoleShareHash(sarsCov2PublicInstance.server, landingPageQuery)}`;
 
 export default function HomePage() {
     usePageMeta();
@@ -27,19 +23,6 @@ export default function HomePage() {
                             RhyDB stores genomic sequences and their metadata. Its query language supports filtering,
                             aggregation, and queries on reference-aligned nucleotide and amino-acid sequences.
                         </p>
-                        <div className='mt-8 flex flex-wrap gap-3'>
-                            <Link className='btn btn-primary' to='/docs'>
-                                Read the documentation
-                            </Link>
-                            <a
-                                className='btn btn-outline'
-                                href='https://github.com/GenSpectrum/LAPIS-SILO'
-                                target='_blank'
-                                rel='noreferrer'
-                            >
-                                View on GitHub
-                            </a>
-                        </div>
                     </div>
                     <div className='hero-query self-center overflow-hidden rounded-box border border-base-300 bg-neutral shadow-sm'>
                         <div className='flex items-center gap-1.5 border-b border-neutral-content/15 px-4 py-3'>

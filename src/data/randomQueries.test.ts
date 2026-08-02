@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { exercises } from './exercises';
-import { getRandomSarsCov2Query, sarsCov2RandomQueries } from './randomQueries';
+import {
+    getRandomSarsCov2Query,
+    landingPageQuery,
+    sarsCov2RandomQueries,
+    withoutLeadingComments,
+} from './randomQueries';
 
 describe('sarsCov2RandomQueries', () => {
-    it('contains ten unique queries with one or two leading comments', () => {
-        expect(sarsCov2RandomQueries).toHaveLength(10);
-        expect(new Set(sarsCov2RandomQueries).size).toBe(10);
+    it('contains eleven unique queries with one or two leading comments', () => {
+        expect(sarsCov2RandomQueries).toHaveLength(11);
+        expect(new Set(sarsCov2RandomQueries).size).toBe(11);
 
         for (const query of sarsCov2RandomQueries) {
             const lines = query.split('\n');
@@ -19,6 +24,19 @@ describe('sarsCov2RandomQueries', () => {
     it('does not duplicate an exercise answer', () => {
         const exerciseAnswers = new Set(exercises.map((exercise) => normalizeQuery(exercise.answer)));
         for (const query of sarsCov2RandomQueries) expect(exerciseAnswers.has(normalizeQuery(query))).toBe(false);
+    });
+
+    it('offers the landing page query as an example', () => {
+        expect(sarsCov2RandomQueries).toContain(landingPageQuery);
+    });
+
+    it('keeps the landing page hero query unchanged once its comment is dropped', () => {
+        expect(withoutLeadingComments(landingPageQuery)).toBe(`default
+  .filter(region = 'Europe')
+  .map({"S[69]" := S.at(69), "S[70]" := S.at(70), "S[501]" := S.at(501)})
+  .groupBy({count := count()}, {pangoLineage, "S[69]", "S[70]", "S[501]"})
+  .orderBy({count.desc()})
+  .limit(10)`);
     });
 
     it('can avoid immediately selecting the current query again', () => {

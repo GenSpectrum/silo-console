@@ -10,16 +10,41 @@ export default function ExercisesListPage() {
         <div className='exercises-list w-full max-w-5xl'>
             <h1 className='text-3xl font-bold tracking-tight'>Exercises</h1>
             <p className='mt-3 max-w-3xl text-base leading-relaxed text-base-content/65'>
-                Write queries against the staging dataset. Results are compared with reference queries. Each exercise
-                includes an explanation and documentation links.
+                Write queries against the open SARS-CoV-2 dataset. Results are automatically compared with the reference
+                answer. Each exercise includes an explanation and links to the relevant documentation.
             </p>
             <div className='mt-5 alert items-start border-info/25 bg-info/8 text-sm'>
                 <span className='text-info'>●</span>
                 <div>
                     <div className='font-semibold'>Fixed training environment</div>
                     <p className='mt-0.5 text-base-content/65'>
-                        Every exercise runs against the SARS-CoV-2 INSDC dataset hosted by CoV-Spectrum. The Console's
-                        server selection does not affect exercises.
+                        The exercises run against the SARS-CoV-2 dataset preprocessed by{' '}
+                        <a
+                            className='link-primary'
+                            href='https://docs.nextstrain.org/projects/ncov/en/latest/reference/remote_inputs.html'
+                            target='_blank'
+                            rel='noreferrer'
+                        >
+                            Nextstrain
+                        </a>{' '}
+                        using data from{' '}
+                        <a className='link-primary' href='https://www.insdc.org/' target='_blank' rel='noreferrer'>
+                            INSDC
+                        </a>{' '}
+                        and{' '}
+                        <a
+                            className='link-primary'
+                            href='https://www.rki.de/DE/Home/home_node.html'
+                            target='_blank'
+                            rel='noreferrer'
+                        >
+                            RKI
+                        </a>{' '}
+                        and hosted by{' '}
+                        <a className='link-primary' href='https://cov-spectrum.org' target='_blank' rel='noreferrer'>
+                            CoV-Spectrum
+                        </a>
+                        .
                     </p>
                     <p className='mt-1 font-mono text-xs break-all text-base-content/50'>{EXERCISE_SERVER}</p>
                 </div>
