@@ -1,0 +1,122 @@
+---
+title: Function reference
+description: Scalar, lineage, sequence, insertion, and mutation-profile functions.
+lead: Functions produce scalar values or predicates. Boolean functions are used in filter expressions; value-producing functions can be assigned in map operations.
+section: Reference
+order: 5
+---
+
+import Note from '../../../components/astro/Note.astro';
+import ReferenceItem from '../../../components/astro/ReferenceItem.astro';
+
+## General functions
+
+<ReferenceItem id='at' name='at(column, position)'>
+    <span slot='description'>
+        Return the character at a 1-based position. A position beyond the value returns an empty string; null remains
+        null.
+    </span>
+    {`default.map({symbol := S.at(501)})`}
+</ReferenceItem>
+
+<ReferenceItem id='iso-week' name='isoWeek(column)'>
+    <span slot='description'>Return the ISO 8601 week number, from 1 through 53, for a date.</span>
+    {`default.map({week := date.isoWeek()})`}
+</ReferenceItem>
+
+<ReferenceItem id='between' name='between(column, from, to)'>
+    <span slot='description'>Test an inclusive date or numeric range. Use null for an open bound.</span>
+    {`date.between('2024-01-01'::date, '2024-12-31'::date)
+age.between(18, null)`}
+</ReferenceItem>
+
+<ReferenceItem id='in' name='in(column, {values})'>
+    <span slot='description'>Test whether a string column equals one of the values in a set.</span>
+    {`country.in({'Germany', 'France', 'Italy'})`}
+</ReferenceItem>
+
+<ReferenceItem id='null' name='isNull(column) / isNotNull(column)'>
+    <span slot='description'>Test whether a column value is null or non-null.</span>
+    {`isNotNull(date)`}
+</ReferenceItem>
+
+<ReferenceItem id='like' name='like(column, pattern)'>
+    <span slot='description'>Match a string with an RE2 regular expression.</span>
+    {`division.like('Basel.*')`}
+</ReferenceItem>
+
+## Lineage and phylogenetic functions
+
+<ReferenceItem
+    id='lineage-function'
+    name='lineage(column, value [, includeSublineages := bool] [, recombinantFollowingMode := string])'
+>
+    <span slot='description'>Match a value in a configured lineage index. Optionally include its descendants.</span>
+    {`pangoLineage.lineage('B.1.1.7', includeSublineages := true)`}
+</ReferenceItem>
+
+<ReferenceItem id='phylo-descendant' name='phyloDescendantOf(column, node)'>
+    <span slot='description'>Test whether a value descends from a node in a configured phylogenetic tree.</span>
+    {`usherTree.phyloDescendantOf('NODE_0000072')`}
+</ReferenceItem>
+
+## Sequence functions
+
+<Note>
+    Every sequence predicate requires a sequence name. Positions are 1-based. Nucleotide and amino-acid functions have
+    parallel forms where shown.
+</Note>
+
+<ReferenceItem id='equals' name='nucleotideEquals(position := n, symbol := s, sequenceName := name)'>
+    <span slot='description'>
+        Test the symbol at a nucleotide reference position. Use <code>.</code> to represent the reference symbol.{' '}
+        <code>aminoAcidEquals</code> is the amino-acid form.
+    </span>
+    {`nucleotideEquals(position := 23403, symbol := 'G', sequenceName := 'main')
+aminoAcidEquals(position := 501, symbol := 'Y', sequenceName := 'S')`}
+</ReferenceItem>
+
+<ReferenceItem id='has-mutation' name='hasMutation(position := n, sequenceName := name) / hasAAMutation(...)'>
+    <span slot='description'>Test whether a position differs from the reference and is not an unknown symbol.</span>
+    {`hasMutation(position := 23403, sequenceName := 'main')`}
+</ReferenceItem>
+
+<ReferenceItem id='insertion-contains' name='insertionContains(position := n, value := regex, sequenceName := name)'>
+    <span slot='description'>
+        Test whether an insertion after a reference position matches an RE2 expression.{' '}
+        <code>aminoAcidInsertionContains</code> is the amino-acid form.
+    </span>
+    {`insertionContains(position := 22204, value := 'A.*G', sequenceName := 'main')`}
+</ReferenceItem>
+
+<ReferenceItem id='maybe-exact' name='maybe(child) / exact(child)'>
+    <span slot='description'>Relax a child sequence expression to admit ambiguity, or require an exact match.</span>
+    {`maybe(nucleotideEquals(position := 122, symbol := 'A', sequenceName := 'main'))`}
+</ReferenceItem>
+
+<ReferenceItem id='n-of' name='nOf(count, {children} [, matchExactly := bool])'>
+    <span slot='description'>
+        Test whether at least count child predicates match, or exactly count when <code>matchExactly</code> is true.
+    </span>
+    {`nOf(2, {
+  nucleotideEquals(position := 241, symbol := 'T', sequenceName := 'main'),
+  nucleotideEquals(position := 3037, symbol := 'T', sequenceName := 'main'),
+  nucleotideEquals(position := 23403, symbol := 'G', sequenceName := 'main')
+})`}
+</ReferenceItem>
+
+<ReferenceItem id='mutation-profile' name='nucleotideMutationProfile(distance := n, ..., sequenceName := name)'>
+    <span slot='description'>
+        Test whether a sequence is within a conservative-difference distance of a profile. Define the profile with
+        exactly one of <code>querySequence</code>, <code>sequenceId</code>, or <code>mutations</code>.{' '}
+        <code>aminoAcidMutationProfile</code> is the amino-acid form.
+    </span>
+    {`nucleotideMutationProfile(
+  distance := 3,
+  sequenceName := 'main',
+  mutations := {
+    {position := 241, symbol := 'T'},
+    {position := 23403, symbol := 'G'}
+  }
+)`}
+</ReferenceItem>

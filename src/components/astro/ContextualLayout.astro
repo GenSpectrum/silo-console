@@ -1,0 +1,22 @@
+---
+interface Props {
+    label: string;
+}
+
+const { label } = Astro.props;
+---
+
+<div
+    class='contextual-shell mx-auto grid w-full max-w-7xl gap-5 px-4 py-8 lg:grid-cols-[17rem_minmax(0,1fr)] lg:px-6 lg:py-10'
+>
+    <aside class='contextual-aside'>
+        <details class='collapse border border-base-300 bg-base-200 lg:hidden'>
+            <summary class='collapse-title min-h-0 py-3 font-semibold'>{label}</summary>
+            <div class='collapse-content px-2 pb-2'><slot name='navigation' /></div>
+        </details>
+        <nav class='sticky top-24 hidden lg:block' aria-label={label}>
+            <slot name='navigation' />
+        </nav>
+    </aside>
+    <div class='contextual-content min-w-0'><slot /></div>
+</div>

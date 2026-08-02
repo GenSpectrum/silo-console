@@ -1,10 +1,8 @@
-import { lazy, Suspense, type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import QueryRunner, { type QueryRunnerHandle } from '../components/QueryRunner';
+import { lazy, Suspense, type SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
+import QueryRunner, { type QueryRunnerHandle } from './QueryRunner';
 import { DEFAULT_CONSOLE_SERVER, RHYDB_WASM_ENABLED, RHYDB_WASM_VERSION } from '../config';
 import { fetchRhyDBInfo, type RhyDBInfo } from '../lib/rhydbInfo';
 import { buildConsoleSelectionHash, buildConsoleShareUrl, normalizeServerUrl } from '../lib/serverUrl';
-import { usePageMeta } from '../lib/pageMeta';
 import type { QueryRow } from '../lib/types';
 import { publicInstances, sarsCov2PublicInstance, type PublicInstance } from '../data/publicInstances';
 import { getRandomSarsCov2Query } from '../data/randomQueries';
@@ -14,7 +12,7 @@ import type { LocalRhyDBEvent, LocalRhyDBProgress } from '../lib/localRhyDBProto
 
 const STORAGE_KEY = 'rhydb-console-server';
 const LocalDataSetup =
-    import.meta.env.VITE_RHYDB_WASM_ENABLED === 'true' ? lazy(() => import('../components/LocalDataSetup')) : null;
+    import.meta.env.PUBLIC_RHYDB_WASM_ENABLED === 'true' ? lazy(() => import('./LocalDataSetup')) : null;
 
 type RemoteConnection = {
     kind: 'remote';
@@ -40,10 +38,8 @@ type SchemaState =
     | { status: 'ready'; rows: QueryRow[]; error: null }
     | { status: 'error'; rows: QueryRow[]; error: string };
 
-export default function ConsolePage() {
-    usePageMeta('Console', 'Connect a RhyDB instance, inspect its schema, and run RhyDB queries in the browser.');
-    const location = useLocation();
-    const navigate = useNavigate();
+export default function Console() {
+    const { location, navigate } = useConsoleLocation();
     const sharedParams = new URLSearchParams(location.hash.slice(1));
     const sharedServer = sharedParams.get('server');
     const initialQuery = sharedParams.get('query') || '';
@@ -168,13 +164,13 @@ export default function ConsolePage() {
         }
     };
 
-    const connectPublic = (event: FormEvent) => {
+    const connectPublic = (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
         const instance = publicInstances.find((item) => item.id === selectedPublicId) || publicInstances[0];
         selectRemoteServer(instance.server);
     };
 
-    const connectCustom = (event: FormEvent) => {
+    const connectCustom = (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
         selectRemoteServer(serverInput);
     };
@@ -254,9 +250,7 @@ export default function ConsolePage() {
     };
 
     return (
-        <div className='console-page mx-auto w-full max-w-7xl px-4 py-8 lg:px-6 lg:py-10'>
-            <h1 className='text-3xl font-bold tracking-tight'>Console</h1>
-
+        <div>
             {!connection && (
                 <div className='mt-4 alert border-info/25 bg-info/8 px-3 py-2 text-sm'>
                     <p className='text-base-content/65'>
@@ -493,7 +487,7 @@ function PublicInstanceForm({
     selectedId: string;
     connecting: boolean;
     onSelect: (id: string) => void;
-    onSubmit: (event: FormEvent) => void;
+    onSubmit: (event: SyntheticEvent<HTMLFormElement>) => void;
 }) {
     return (
         <form className='mt-4' onSubmit={onSubmit}>
@@ -540,7 +534,7 @@ function CustomServerForm({
     server: string;
     connecting: boolean;
     onServerChange: (server: string) => void;
-    onSubmit: (event: FormEvent) => void;
+    onSubmit: (event: SyntheticEvent<HTMLFormElement>) => void;
 }) {
     return (
         <form className='mt-4' onSubmit={onSubmit}>
@@ -606,6 +600,41 @@ function SchemaTable({ rows }: { rows: QueryRow[] }) {
 function storedServer() {
     if (typeof localStorage === 'undefined') return null;
     return localStorage.getItem(STORAGE_KEY);
+}
+
+type BrowserLocation = {
+    pathname: string;
+    hash: string;
+    key: string;
+};
+
+function readBrowserLocation(): BrowserLocation {
+    return {
+        pathname: window.location.pathname,
+        hash: window.location.hash,
+        key: `${window.location.pathname}${window.location.hash}`,
+    };
+}
+
+function useConsoleLocation() {
+    const [location, setLocation] = useState(readBrowserLocation);
+
+    useEffect(() => {
+        const update = () => setLocation(readBrowserLocation());
+        window.addEventListener('hashchange', update);
+        window.addEventListener('popstate', update);
+        return () => {
+            window.removeEventListener('hashchange', update);
+            window.removeEventListener('popstate', update);
+        };
+    }, []);
+
+    const navigate = useCallback(({ pathname, hash }: { pathname: string; search?: string; hash: string }) => {
+        window.history.pushState(null, '', `${pathname}${hash}`);
+        setLocation(readBrowserLocation());
+    }, []);
+
+    return { location, navigate };
 }
 
 function shortVersion(version: string) {

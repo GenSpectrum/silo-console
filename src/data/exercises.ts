@@ -34,7 +34,7 @@ export const exercises: Exercise[] = [
         explanation:
             'Filter the table to sequences from Switzerland. Then, use groupBy without grouping columns to count all remaining rows.',
         documentation: [
-            { label: 'Query pipelines', to: '/docs/explanation/data-model#queries-are-pipelines' },
+            { label: 'Query pipelines', to: '/docs/concepts/data-model#queries-are-pipelines' },
             { label: 'filter and groupBy', to: '/docs/reference/query-language#pipeline-operations' },
         ],
         answer: `default
@@ -147,7 +147,7 @@ sample-002 | Germany     | 2021-01-16 | B.1.1.7`,
         documentation: [
             {
                 label: 'Reference coordinates',
-                to: '/docs/explanation/data-model#aligned-sequences-and-reference-positions',
+                to: '/docs/concepts/data-model#aligned-sequences-and-reference-positions',
             },
             { label: 'hasMutation', to: '/docs/reference/functions#has-mutation' },
         ],
@@ -237,7 +237,7 @@ sample-052 | France  | 2021-01-16`,
         documentation: [
             {
                 label: 'Sequence insertions',
-                to: '/docs/explanation/data-model#aligned-sequences-and-reference-positions',
+                to: '/docs/concepts/data-model#aligned-sequences-and-reference-positions',
             },
             { label: 'aminoAcidInsertions', to: '/docs/reference/query-language#amino-acid-insertions' },
         ],
@@ -301,7 +301,7 @@ G          | 8`,
         explanation:
             'Filter the table to sequences from Switzerland. Use aminoAcidMutations to get changes on the S protein with a minimum proportion of 10%, then use groupBy to count the mutation rows for each resulting symbol. Order the rows by their counts.',
         documentation: [
-            { label: 'Pipeline schemas', to: '/docs/explanation/data-model#queries-are-pipelines' },
+            { label: 'Pipeline schemas', to: '/docs/concepts/data-model#queries-are-pipelines' },
             { label: 'aminoAcidMutations', to: '/docs/reference/query-language#amino-acid-mutations' },
         ],
         answer: `default
@@ -324,7 +324,7 @@ G          | 8`,
             { label: 'Mutation profiles', to: '/docs/reference/functions#mutation-profile' },
             {
                 label: 'Sequence coordinates',
-                to: '/docs/explanation/data-model#aligned-sequences-and-reference-positions',
+                to: '/docs/concepts/data-model#aligned-sequences-and-reference-positions',
             },
         ],
         answer: `default
@@ -368,7 +368,7 @@ sample-US-001 | 2024-05-09 | JN.1.4       | California`,
         explanation:
             'Build a table of the 100 most recent German sequences and use map to copy the country into the place column. Build the same table for the USA with the division in the place column, then combine both tables with unionAll. Order the combined rows by date descending.',
         documentation: [
-            { label: 'Pipeline schemas', to: '/docs/explanation/data-model#queries-are-pipelines' },
+            { label: 'Pipeline schemas', to: '/docs/concepts/data-model#queries-are-pipelines' },
             { label: 'unionAll', to: '/docs/reference/query-language#union-all' },
         ],
         answer: `default

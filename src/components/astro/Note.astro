@@ -1,0 +1,15 @@
+---
+interface Props {
+    title?: string;
+}
+
+const { title = 'Note' } = Astro.props;
+---
+
+<div class='my-5 alert items-start border-info/25 bg-info/8 text-base-content'>
+    <span class='mt-0.5 text-info'>●</span>
+    <div>
+        <div class='font-semibold'>{title}</div>
+        <div class='mt-1 text-sm leading-relaxed text-base-content/70'><slot /></div>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+---
+import ContextualLayout from '../components/astro/ContextualLayout.astro';
+import ExercisesNavigation from '../components/astro/ExercisesNavigation.astro';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+    title: string;
+    description: string;
+    currentSlug?: string;
+    listActive?: boolean;
+}
+
+const { title, description, currentSlug, listActive } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+    <ContextualLayout label='Exercise navigation'>
+        <ExercisesNavigation slot='navigation' currentSlug={currentSlug} listActive={listActive} />
+        <slot />
+    </ContextualLayout>
+</BaseLayout>

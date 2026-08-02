@@ -1,6 +1,6 @@
 # RhyDB website
 
-The public homepage, documentation, exercises, and browser-based query Console for [RhyDB](https://github.com/GenSpectrum/LAPIS-SILO). The site is a fully client-side React and TypeScript application built with Vite, Tailwind CSS, and daisyUI. It can be hosted as static files and has no backend of its own.
+The public homepage, documentation, exercises, and browser-based query Console for [RhyDB](https://github.com/GenSpectrum/LAPIS-SILO). Astro renders the site content to static HTML, while React islands provide the interactive Console and exercise query editors. The site uses TypeScript, Tailwind CSS, and daisyUI and has no backend of its own.
 
 ## Site areas
 
@@ -18,31 +18,32 @@ When browser-local RhyDB is enabled, uploaded files, preprocessing, state loadin
 ```sh
 npm install
 npm run dev          # http://localhost:5001
-npm run typecheck
+npm run check
 npm test
 npm run check-format
 npm run build
+npm run preview
 ```
 
 Run `npm run format` before committing formatting-sensitive changes.
 
-`npm run build` typechecks the application, builds it into `dist/`, and creates a real `index.html` for every route. This allows direct loads and browser refreshes on static hosts without SPA fallback rules.
+`npm run build` checks the Astro and TypeScript sources and writes a complete static site to `dist/`. The homepage, documentation, exercise content, navigation, and metadata are present in the generated HTML. The Console and query editors load as client-only React islands.
 
 ## Configuration
 
-Vite reads these variables at build time:
+Astro reads these variables at build time:
 
-| Variable                     | Default                   | Purpose                                                                                                        |
-| ---------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `VITE_RHYDB_DEFAULT_SERVER`  | GenSpectrum staging RhyDB | Initial server shown by the Console. Visitors may connect another instance.                                    |
-| `VITE_RHYDB_EXERCISE_SERVER` | GenSpectrum staging RhyDB | Fixed server used by exercises and reference answers. It is not editable in the UI.                            |
-| `VITE_RHYDB_WASM_ENABLED`    | `false`                   | Adds the opt-in browser-local RhyDB target. Requires administrator-supplied WASM assets and isolation headers. |
-| `VITE_BASE`                  | `/`                       | Public base path, such as `/rhydb-console/` for a GitHub Pages project site.                                   |
+| Variable                       | Default                   | Purpose                                                                                                        |
+| ------------------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `PUBLIC_RHYDB_DEFAULT_SERVER`  | GenSpectrum staging RhyDB | Initial server shown by the Console. Visitors may connect another instance.                                    |
+| `PUBLIC_RHYDB_EXERCISE_SERVER` | GenSpectrum staging RhyDB | Fixed server used by exercises and reference answers. It is not editable in the UI.                            |
+| `PUBLIC_RHYDB_WASM_ENABLED`    | `false`                   | Adds the opt-in browser-local RhyDB target. Requires administrator-supplied WASM assets and isolation headers. |
+| `PUBLIC_BASE_PATH`             | `/`                       | Public base path, such as `/rhydb-console/` for a GitHub Pages project site.                                   |
 
 Example:
 
 ```sh
-VITE_RHYDB_DEFAULT_SERVER=https://rhydb.example.org npm run build
+PUBLIC_RHYDB_DEFAULT_SERVER=https://rhydb.example.org npm run build
 ```
 
 ## Browser-local RhyDB
@@ -51,8 +52,8 @@ The pthread-enabled RhyDB WASM files are supplied separately at build time. Thei
 
 ```sh
 gh run download 30373590930 --repo GenSpectrum/LAPIS-SILO --name silo-wasm --dir .rhydb-wasm
-VITE_RHYDB_WASM_ENABLED=true npm run build
-VITE_RHYDB_WASM_ENABLED=true npm run serve -- --host 127.0.0.1 --port 5001
+PUBLIC_RHYDB_WASM_ENABLED=true npm run build
+PUBLIC_RHYDB_WASM_ENABLED=true npm run preview -- --host 127.0.0.1 --port 5001
 ```
 
 An enabled build fails when `rhydb_wasm.js` or `rhydb_wasm.wasm` is absent. Disabled builds omit both files and the local-data tab. GitHub Pages uses the disabled default.
@@ -67,7 +68,7 @@ Cross-Origin-Embedder-Policy: require-corp
 To build the container with local RhyDB, place the files in `.rhydb-wasm/` before building:
 
 ```sh
-docker build --build-arg VITE_RHYDB_WASM_ENABLED=true -t rhydb-website .
+docker build --build-arg PUBLIC_RHYDB_WASM_ENABLED=true -t rhydb-website .
 ```
 
 Raw preprocessing accepts one preprocessing YAML and the files it references: one plain NDJSON or `.zst` input, the database configuration, the reference genome, and any configured lineage-definition or phylogenetic-tree files. The browser matches references by filename and reports missing or duplicate selections before loading WASM. Inputs above 500 MB are allowed with a memory warning; whether they fit depends on the resulting RhyDB indexes and the browser's 2 GiB WASM memory ceiling.

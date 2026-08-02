@@ -12,13 +12,13 @@ jobs:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
               with:
-                  node-version: 22
+                  node-version: 24
                   cache: npm
             - run: npm ci
             - name: Check formatting (Prettier)
               run: npm run check-format
-            - name: TypeScript
-              run: npm run typecheck
+            - name: Astro and TypeScript
+              run: npm run check
             - name: Unit tests
               run: npm test
             - name: Build

@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+import { withBase } from '../../lib/paths';
+import DocumentationLayout from '../../layouts/DocumentationLayout.astro';
+
+const entries = (await getCollection('docs')).sort((a, b) => a.data.order - b.data.order);
+const sections = ['Concepts', 'Reference'] as const;
+---
+
+<DocumentationLayout
+    title='Documentation'
+    description='Documentation for RhyDB data, queries, functions, and the HTTP API.'
+    currentPath='/docs'
+    overview
+>
+    <div class='grid gap-5 md:grid-cols-2'>
+        {
+            sections.map((section) => (
+                <section class='card border border-base-300 bg-base-100'>
+                    <div class='card-body'>
+                        <h2 class='card-title'>{section}</h2>
+                        <ul class='mt-3 space-y-3'>
+                            {entries
+                                .filter((entry) => entry.data.section === section)
+                                .map((entry) => (
+                                    <li>
+                                        <a class='font-medium link-primary' href={withBase(`/docs/${entry.id}`)}>
+                                            {entry.data.title}
+                                        </a>
+                                        <p class='mt-0.5 text-sm text-base-content/60'>{entry.data.description}</p>
+                                    </li>
+                                ))}
+                        </ul>
+                    </div>
+                </section>
+            ))
+        }
+    </div>
+    <div class='card mt-5 border border-primary/25 bg-primary/8'>
+        <div class='card-body flex-row flex-wrap items-center justify-between gap-4'>
+            <div>
+                <h2 class='card-title text-lg'>Exercises</h2>
+                <p class='text-sm text-base-content/65'>Practice writing queries against a real dataset.</p>
+            </div>
+            <a class='btn btn-primary btn-sm' href={withBase('/exercises')}>Browse exercises</a>
+        </div>
+    </div>
+</DocumentationLayout>

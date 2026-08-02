@@ -1,0 +1,17 @@
+---
+import Console from '../components/Console';
+import IslandFallback from '../components/astro/IslandFallback.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+    title='Console'
+    description='Connect a RhyDB instance, inspect its schema, and run RhyDB queries in the browser.'
+>
+    <div class='console-page mx-auto w-full max-w-7xl px-4 py-8 lg:px-6 lg:py-10'>
+        <h1 class='text-3xl font-bold tracking-tight'>Console</h1>
+        <Console client:only='react'>
+            <IslandFallback slot='fallback' label='Loading Console…' />
+        </Console>
+    </div>
+</BaseLayout>

@@ -2,7 +2,7 @@ import { copyFile, mkdir, readdir, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 
-const enabled = process.env.VITE_RHYDB_WASM_ENABLED === 'true';
+const enabled = process.env.PUBLIC_RHYDB_WASM_ENABLED === 'true';
 const projectRoot = path.resolve(import.meta.dirname, '..');
 const generatedRoot = path.join(projectRoot, '.generated-public');
 const generatedWasmDirectory = path.join(generatedRoot, 'rhydb-wasm');

@@ -1,0 +1,100 @@
+---
+import ExerciseQueryRunner from '../../components/ExerciseQueryRunner';
+import IslandFallback from '../../components/astro/IslandFallback.astro';
+import { EXERCISE_SERVER } from '../../config';
+import { exercises, type Exercise } from '../../data/exercises';
+import { withBase } from '../../lib/paths';
+import ExercisesLayout from '../../layouts/ExercisesLayout.astro';
+
+export function getStaticPaths() {
+    return exercises.map((exercise) => ({ params: { slug: exercise.slug }, props: { exercise } }));
+}
+
+interface Props {
+    exercise: Exercise;
+}
+
+const { exercise } = Astro.props;
+const index = exercises.findIndex((item) => item.slug === exercise.slug);
+const previous = exercises[index - 1];
+const next = exercises[index + 1];
+const questionParagraphs = exercise.question
+    .trim()
+    .split(/\n{2,}/)
+    .filter(Boolean);
+---
+
+<ExercisesLayout title={exercise.title} description={exercise.question.split('\n\n')[0]} currentSlug={exercise.slug}>
+    <div class='exercise-page w-full'>
+        <div class='breadcrumbs mb-6 text-sm'>
+            <ul><li><a href={withBase('/exercises')}>Exercises</a></li><li>Exercise {index + 1}</li></ul>
+        </div>
+        <div class='flex flex-wrap items-start justify-between gap-4'>
+            <div>
+                <p class='text-sm font-semibold text-primary'>Exercise {index + 1} of {exercises.length}</p>
+                <h1 class='mt-1 text-3xl font-bold tracking-tight'>{exercise.title}</h1>
+            </div>
+            <div class='badge border-info/30 bg-info/8 text-info'>Fixed training server</div>
+        </div>
+        <div class='card my-5 border border-base-300 bg-base-200 card-sm'>
+            <div class='card-body gap-0'>
+                {questionParagraphs.map((paragraph) => <p class='mb-2 last:mb-0'>{paragraph.replace(/\n/g, ' ')}</p>)}
+                <p class='mt-3 mb-1 text-sm font-semibold'>The output should have this shape:</p>
+                <pre
+                    class='my-2 max-w-full overflow-x-auto rounded-field border border-base-300 bg-base-100 p-3 font-mono text-xs'><code>{exercise.outputExample}</code></pre>
+            </div>
+        </div>
+        <p class='mb-3 text-sm text-base-content/60'>
+            Write a query and run it. The result is compared with the reference answer without considering row order.
+        </p>
+        <ExerciseQueryRunner client:only='react' server={EXERCISE_SERVER} referenceQuery={exercise.answer}>
+            <IslandFallback slot='fallback' label='Loading query editor…' />
+        </ExerciseQueryRunner>
+        <div class='mt-6 space-y-3'>
+            <details class='collapse border border-base-300 bg-base-100'>
+                <summary class='collapse-title font-semibold'>Explanation</summary>
+                <div class='collapse-content text-sm leading-relaxed text-base-content/75'>
+                    <p>{exercise.explanation}</p>
+                    <div class='mt-4 flex flex-wrap gap-2'>
+                        {
+                            exercise.documentation.map((item) => (
+                                <a class='btn btn-outline btn-xs' href={withBase(item.to)}>
+                                    {item.label}
+                                </a>
+                            ))
+                        }
+                    </div>
+                </div>
+            </details>
+            <details class='collapse border border-base-300 bg-base-100'>
+                <summary class='collapse-title font-semibold'>Reference answer</summary>
+                <div class='collapse-content'>
+                    <pre
+                        class='overflow-x-auto rounded-box border border-base-300 bg-neutral p-4 font-mono text-xs leading-6 text-neutral-content'><code>{exercise.answer}</code></pre>
+                </div>
+            </details>
+        </div>
+        <nav class='mt-8 flex justify-between gap-4 border-t border-base-300 pt-5' aria-label='Exercise navigation'>
+            {
+                previous ? (
+                    <a class='btn btn-ghost btn-sm' href={withBase(`/exercises/${previous.slug}`)}>
+                        ← Previous
+                    </a>
+                ) : (
+                    <span />
+                )
+            }
+            {
+                next ? (
+                    <a class='btn btn-ghost btn-sm' href={withBase(`/exercises/${next.slug}`)}>
+                        Next →
+                    </a>
+                ) : (
+                    <a class='btn btn-ghost btn-sm' href={withBase('/exercises')}>
+                        All exercises
+                    </a>
+                )
+            }
+        </nav>
+    </div>
+</ExercisesLayout>

@@ -20,25 +20,17 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
+            - name: Build and upload Astro site
+              uses: withastro/action@v6
               with:
-                  node-version: 22
-                  cache: npm
-            - uses: actions/configure-pages@v5
-            - run: npm ci
-            - name: Build
-              run: npm run build
+                  node-version: 24
               env:
-                  # Use the repository name as the GitHub Pages base path.
-                  VITE_BASE: /${{ github.event.repository.name }}/
-                  # Optional: set a repository variable VITE_RHYDB_DEFAULT_SERVER to override the default
+                  PUBLIC_BASE_PATH: /${{ github.event.repository.name }}/
+                  # Optional: set a repository variable PUBLIC_RHYDB_DEFAULT_SERVER to override the default
                   # RhyDB server. Empty falls back to the built-in default (see src/config.ts).
-                  VITE_RHYDB_DEFAULT_SERVER: ${{ vars.VITE_RHYDB_DEFAULT_SERVER }}
+                  PUBLIC_RHYDB_DEFAULT_SERVER: ${{ vars.PUBLIC_RHYDB_DEFAULT_SERVER }}
                   # Exercises use a separate, non-editable staging target.
-                  VITE_RHYDB_EXERCISE_SERVER: ${{ vars.VITE_RHYDB_EXERCISE_SERVER }}
-            - uses: actions/upload-pages-artifact@v3
-              with:
-                  path: dist
+                  PUBLIC_RHYDB_EXERCISE_SERVER: ${{ vars.PUBLIC_RHYDB_EXERCISE_SERVER }}
 
     deploy:
         needs: build
@@ -48,4 +40,4 @@ jobs:
             url: ${{ steps.deployment.outputs.page_url }}
         steps:
             - id: deployment
-              uses: actions/deploy-pages@v4
+              uses: actions/deploy-pages@v5

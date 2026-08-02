@@ -1,0 +1,312 @@
+---
+title: Query-language reference
+description: Query structure, literals, operators, and pipeline operations.
+lead: A RhyDB query is a pipeline of operations that starts from a table name and produces a table of result rows.
+section: Reference
+order: 4
+---
+
+import CodeBlock from '../../../components/astro/CodeBlock.astro';
+import Note from '../../../components/astro/Note.astro';
+import ReferenceItem from '../../../components/astro/ReferenceItem.astro';
+
+## Query structure
+
+<CodeBlock>{`default
+  .filter(country = 'Switzerland')
+  .groupBy({count := count()}, {pangoLineage})`}</CodeBlock>
+
+Method syntax is equivalent to passing the value on the left as the first function argument. Named arguments use `:=`. After a named argument, all remaining arguments must also be named.
+
+## Literals
+
+<div className='my-4 overflow-x-auto rounded-box border border-base-300'>
+    <table className='table table-sm'>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Syntax</th>
+                <th>Example</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>String</td>
+                <td>single-quoted</td>
+                <td>
+                    <code>'Switzerland'</code>
+                </td>
+            </tr>
+            <tr>
+                <td>Integer</td>
+                <td>bare number</td>
+                <td>
+                    <code>42</code>
+                </td>
+            </tr>
+            <tr>
+                <td>Float</td>
+                <td>decimal</td>
+                <td>
+                    <code>3.14</code>
+                </td>
+            </tr>
+            <tr>
+                <td>Boolean</td>
+                <td>
+                    <code>true</code> or <code>false</code>
+                </td>
+                <td>
+                    <code>true</code>
+                </td>
+            </tr>
+            <tr>
+                <td>Null</td>
+                <td>
+                    <code>null</code>
+                </td>
+                <td>
+                    <code>null</code>
+                </td>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td>
+                    <code>'YYYY-MM-DD'::date</code>
+                </td>
+                <td>
+                    <code>'2024-05-15'::date</code>
+                </td>
+            </tr>
+            <tr>
+                <td>Set</td>
+                <td>
+                    <code>&#123;value, ...&#125;</code>
+                </td>
+                <td>
+                    <code>&#123;'A', 'B'&#125;</code>
+                </td>
+            </tr>
+            <tr>
+                <td>Record</td>
+                <td>
+                    <code>&#123;name := value, ...&#125;</code>
+                </td>
+                <td>
+                    <code>&#123;label := 'A', n := 3&#125;</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+## Operators
+
+Boolean expressions use `&&` (and), `||` (or), and `!` (not). Parentheses control grouping. Comparisons use `=`, `<>`, `<`, `<=`, `>`, and `>=`; their left-hand side must be a column.
+
+<CodeBlock>{`country = 'Germany' && age >= 18
+!(date < '2024-01-01'::date)`}</CodeBlock>
+
+## Pipeline operations
+
+<ReferenceItem id='filter' name='filter(predicate)'>
+    <span slot='description'>Keep rows for which the predicate is true.</span>
+    {`default.filter(country = 'USA' && age >= 18)`}
+</ReferenceItem>
+
+<ReferenceItem id='group-by' name='groupBy(aggregates [, columns])'>
+    <span slot='description'>
+        Aggregate rows. The first argument is a record of aggregates; the optional second argument is a set of grouping
+        columns. Currently, <code>count()</code> is the supported aggregate.
+    </span>
+    {`default.groupBy({count := count()}, {country, pangoLineage})`}
+</ReferenceItem>
+
+<ReferenceItem id='project' name='project(fields)'>
+    <span slot='description'>Return only the columns in the given set.</span>
+    {`default.project({primaryKey, country, date})`}
+</ReferenceItem>
+
+<ReferenceItem id='map' name='map(expressions)'>
+    <span slot='description'>
+        Add or replace columns using name-and-value assignments. Values may be literals, columns, or non-boolean scalar
+        functions.
+    </span>
+    {`default.map({cohort := 'A', copiedCountry := country, week := date.isoWeek()})`}
+</ReferenceItem>
+
+<ReferenceItem id='order-by' name='orderBy(fields)'>
+    <span slot='description'>Sort by bare ascending fields or asc/desc expressions.</span>
+    {`default.orderBy({date.desc(), primaryKey})`}
+</ReferenceItem>
+
+<ReferenceItem id='limit' name='limit(count)'>
+    <span slot='description'>Return at most count rows.</span>
+    {`default.limit(100)`}
+</ReferenceItem>
+
+<ReferenceItem id='offset' name='offset(count)'>
+    <span slot='description'>Skip count rows. Use a deterministic order when paginating.</span>
+    {`default.orderBy({primaryKey}).offset(100).limit(100)`}
+</ReferenceItem>
+
+<ReferenceItem id='randomize' name='randomize([seed := n])'>
+    <span slot='description'>Return rows in random order. A seed makes the order reproducible.</span>
+    {`default.randomize(seed := 42).limit(10)`}
+</ReferenceItem>
+
+<ReferenceItem id='join' name='join(left, right, on [, type := kind])'>
+    <div slot='description'>
+        <p>
+            Combine two pipelines by equality between columns. Multiple equalities may be joined with{' '}
+            <code>&amp;&amp;</code>. The default type is <code>inner</code>. The two inputs must use disjoint column
+            names. Apply filters to an input pipeline because a <code>join</code> result cannot be filtered.
+        </p>
+        <div className='my-4 overflow-x-auto rounded-box border border-base-300'>
+            <table className='table table-sm'>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Kept rows</th>
+                        <th>Output columns</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>inner</code>
+                        </td>
+                        <td>Matching pairs only (default)</td>
+                        <td>Left and right</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>left</code>
+                        </td>
+                        <td>All left rows; right columns are null-filled when unmatched</td>
+                        <td>Left and right</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>right</code>
+                        </td>
+                        <td>All right rows; left columns are null-filled when unmatched</td>
+                        <td>Left and right</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>full</code>
+                        </td>
+                        <td>All rows from both sides; the unmatched side is null-filled</td>
+                        <td>Left and right</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>leftSemi</code>
+                        </td>
+                        <td>Left rows with a match</td>
+                        <td>Left only</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>rightSemi</code>
+                        </td>
+                        <td>Right rows with a match</td>
+                        <td>Right only</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>leftAnti</code>
+                        </td>
+                        <td>Left rows without a match</td>
+                        <td>Left only</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>rightAnti</code>
+                        </td>
+                        <td>Right rows without a match</td>
+                        <td>Right only</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {`default.groupBy({countWorld := count()}, {pangoLineage})
+  .join(
+    default
+      .filter(country = 'Spain')
+      .groupBy({countSpain := count()}, {pangoLineage})
+      .map({pangoLineage2 := pangoLineage})
+      .project({pangoLineage2, countSpain}),
+    pangoLineage = pangoLineage2,
+    type := left
+  )`}
+</ReferenceItem>
+
+<ReferenceItem id='union-all' name='unionAll(left, right)'>
+    <span slot='description'>
+        Concatenate two results with identical column names, types, and order. Duplicate rows are retained.
+    </span>
+    {`default.filter(country = 'Germany').project({country})
+  .unionAll(default.filter(country = 'France').project({country}))`}
+</ReferenceItem>
+
+<ReferenceItem id='schema' name='schema()'>
+    <span slot='description'>
+        Describe the input schema without reading its rows. Returns <code>fieldName</code> and <code>type</code>.
+    </span>
+    {`default.schema()`}
+</ReferenceItem>
+
+## Sequence aggregations
+
+<Note>
+    These operations aggregate changes across the input rows. A preceding `filter` chooses the records to analyze; it
+    does not restrict which changes the aggregation returns.
+</Note>
+
+<ReferenceItem id='mutations' name='mutations(minProportion := p [, sequenceNames := {...}] [, fields := {...}])'>
+    <span slot='description'>
+        Aggregate nucleotide substitutions and deletions above a frequency threshold. Returns source and observed
+        symbols, position, sequence name, proportion, coverage, and count.
+    </span>
+    {`default.filter(country = 'Switzerland')
+  .mutations(minProportion := 0.05, sequenceNames := {main})`}
+</ReferenceItem>
+
+<ReferenceItem id='amino-acid-mutations' name='aminoAcidMutations(minProportion := p [, ...])'>
+    <span slot='description'>Aggregate amino-acid substitutions and deletions above a frequency threshold.</span>
+    {`default.aminoAcidMutations(minProportion := 0.1, sequenceNames := {S})`}
+</ReferenceItem>
+
+<ReferenceItem id='insertions' name='insertions([sequenceNames := {...}])'>
+    <span slot='description'>
+        Aggregate every nucleotide insertion in the input rows by sequence, position, and inserted symbols.
+    </span>
+    {`default.insertions(sequenceNames := {main})`}
+</ReferenceItem>
+
+<ReferenceItem id='amino-acid-insertions' name='aminoAcidInsertions([sequenceNames := {...}])'>
+    <span slot='description'>
+        Aggregate every amino-acid insertion in the input rows by sequence, position, and inserted symbols.
+    </span>
+    {`default.aminoAcidInsertions(sequenceNames := {S})`}
+</ReferenceItem>
+
+## Phylogenetic operations
+
+<ReferenceItem id='mrca' name='mostRecentCommonAncestor(column [, printNodesNotInTree := bool])'>
+    <span slot='description'>
+        Find the most recent common ancestor of the filtered records in a configured phylogenetic-tree column.
+    </span>
+    {`default.filter(country = 'Germany').mostRecentCommonAncestor('usherTree')`}
+</ReferenceItem>
+
+<ReferenceItem
+    id='phylo-subtree'
+    name='phyloSubtree(column [, printNodesNotInTree := bool] [, contractUnaryNodes := bool])'
+>
+    <span slot='description'>Return a Newick subtree spanning the filtered records.</span>
+    {`default.filter(country = 'Germany').phyloSubtree('usherTree')`}
+</ReferenceItem>

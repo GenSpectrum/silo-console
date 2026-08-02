@@ -1,0 +1,33 @@
+---
+import logoBlack from '../rhydb-logo-black.png';
+import '../styles.css';
+import SiteHeader from '../components/astro/SiteHeader.astro';
+
+interface Props {
+    title?: string;
+    description?: string;
+}
+
+const DEFAULT_TITLE = 'RhyDB | Analytical database for sequence alignment data';
+const DEFAULT_DESCRIPTION = 'RhyDB is a high-performance analytical database for sequence alignment data.';
+const { title, description = DEFAULT_DESCRIPTION } = Astro.props;
+const documentTitle = title ? `${title} | RhyDB` : DEFAULT_TITLE;
+---
+
+<!doctype html>
+<html lang='en' data-theme='rhydb'>
+    <head>
+        <meta charset='UTF-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+        <link rel='icon' type='image/png' href={logoBlack.src} />
+        <meta name='description' content={description} />
+        <meta name='theme-color' content='#17211b' />
+        <title>{documentTitle}</title>
+    </head>
+    <body>
+        <div class='site-shell flex min-h-dvh flex-col bg-base-100'>
+            <SiteHeader pathname={Astro.url.pathname} />
+            <main class='site-content flex-1'><slot /></main>
+        </div>
+    </body>
+</html>

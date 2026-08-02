@@ -6,6 +6,14 @@
     "jsxSingleQuote": true,
     "singleQuote": true,
     "quoteProps": "consistent",
-    "plugins": ["prettier-plugin-tailwindcss"],
-    "tailwindStylesheet": "./src/styles.css"
+    "plugins": ["prettier-plugin-astro", "prettier-plugin-tailwindcss"],
+    "tailwindStylesheet": "./src/styles.css",
+    "overrides": [
+        {
+            "files": "*.astro",
+            "options": {
+                "parser": "astro"
+            }
+        }
+    ]
 }

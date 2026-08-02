@@ -1,0 +1,162 @@
+---
+import { sarsCov2PublicInstance } from '../data/publicInstances';
+import { landingPageQuery, withoutLeadingComments } from '../data/randomQueries';
+import { buildConsoleShareHash } from '../lib/serverUrl';
+import { withBase } from '../lib/paths';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const exampleQuery = withoutLeadingComments(landingPageQuery);
+const exampleShareLink = withBase(`/console${buildConsoleShareHash(sarsCov2PublicInstance.server, landingPageQuery)}`);
+const paths = [
+    {
+        path: '/docs',
+        eyebrow: 'Read',
+        title: 'Documentation',
+        description: 'Read about RhyDB data and queries, or look up query-language and HTTP API behavior.',
+        action: 'Browse documentation',
+    },
+    {
+        path: '/exercises',
+        eyebrow: 'Practice',
+        title: 'Exercises',
+        description: 'Write queries against a fixed SARS-CoV-2 dataset and compare the results with reference queries.',
+        action: 'Start an exercise',
+    },
+    {
+        path: '/console',
+        eyebrow: 'Use',
+        title: 'Console',
+        description:
+            'Connect to a public RhyDB instance or query your own data directly from the browser using WebAssembly.',
+        action: 'Open the console',
+    },
+];
+---
+
+<BaseLayout>
+    <section class='home-hero border-b border-base-300 bg-linear-to-b from-primary/8 to-base-100'>
+        <div class='mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:px-6 lg:py-28'>
+            <div class='hero-copy max-w-3xl'>
+                <h1 class='text-4xl leading-tight font-bold tracking-tight sm:text-5xl lg:text-6xl'>
+                    Analytical database for sequences
+                </h1>
+                <p class='mt-6 max-w-2xl text-lg leading-relaxed text-base-content/70 sm:text-xl'>
+                    RhyDB stores genomic sequences and their metadata. Its query language supports filtering,
+                    aggregation, and queries on reference-aligned nucleotide and amino-acid sequences.
+                </p>
+            </div>
+            <div class='hero-query self-center overflow-hidden rounded-box border border-base-300 bg-neutral shadow-sm'>
+                <div class='flex items-center gap-1.5 border-b border-neutral-content/15 px-4 py-3'>
+                    <span class='size-2.5 rounded-full bg-error'></span><span class='size-2.5 rounded-full bg-warning'
+                    ></span><span class='size-2.5 rounded-full bg-success'></span>
+                    <span class='ml-2 text-xs text-neutral-content/55'>RhyDB query language</span>
+                    <a class='hero-execute btn ml-auto btn-xs' href={exampleShareLink}>Execute</a>
+                </div>
+                <pre
+                    class='overflow-x-auto p-5 text-sm leading-7 text-neutral-content'><code>{exampleQuery}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <section class='get-started-section border-y border-base-300 bg-base-200'>
+        <div class='mx-auto max-w-7xl px-4 py-14 lg:px-6 lg:py-16'>
+            <div class='text-center'>
+                <h2 class='text-3xl font-bold tracking-tight'>Get started</h2><p class='mt-3 text-base-content/70'>
+                    Read the documentation, work through exercises, or query a RhyDB instance.
+                </p>
+            </div>
+            <div class='mt-8 grid gap-5 md:grid-cols-3'>
+                {
+                    paths.map((item) => (
+                        <a
+                            class='path-card card border border-base-300 bg-base-100 transition-colors hover:border-primary/50 hover:no-underline'
+                            href={withBase(item.path)}
+                        >
+                            <div class='card-body'>
+                                <p class='text-xs font-semibold tracking-wide text-primary uppercase'>{item.eyebrow}</p>
+                                <h3 class='card-title text-xl'>{item.title}</h3>
+                                <p class='leading-relaxed text-base-content/65'>{item.description}</p>
+                                <div class='mt-3 card-actions'>
+                                    <span class='link font-medium link-primary'>{item.action} →</span>
+                                </div>
+                            </div>
+                        </a>
+                    ))
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class='capabilities-section mx-auto max-w-7xl px-4 py-14 lg:px-6 lg:py-20'>
+        <div class='max-w-3xl'>
+            <h2 class='text-3xl font-bold tracking-tight'>Features</h2><p
+                class='mt-4 leading-relaxed text-base-content/70'
+            >
+                A query is a pipeline of operations on a table. It can filter and aggregate metadata, retrieve records,
+                or inspect changes relative to reference sequences.
+            </p>
+        </div>
+        <div class='mt-8 grid gap-4 md:grid-cols-3'>
+            <div class='capability-card card border border-base-300 bg-base-100 card-sm'>
+                <div class='card-body'>
+                    <h3 class='card-title text-base'>Filter and retrieve</h3><p
+                        class='text-sm leading-relaxed text-base-content/65'
+                    >
+                        Select records by metadata, lineages, and sequence changes.
+                    </p>
+                </div>
+            </div>
+            <div class='capability-card card border border-base-300 bg-base-100 card-sm'>
+                <div class='card-body'>
+                    <h3 class='card-title text-base'>Aggregate</h3><p
+                        class='text-sm leading-relaxed text-base-content/65'
+                    >
+                        Group, count, order, and transform data.
+                    </p>
+                </div>
+            </div>
+            <div class='capability-card card border border-base-300 bg-base-100 card-sm'>
+                <div class='card-body'>
+                    <h3 class='card-title text-base'>Query sequences</h3><p
+                        class='text-sm leading-relaxed text-base-content/65'
+                    >
+                        Query substitutions, deletions, insertions, mutation profiles, and reference positions.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class='projects-section mx-auto max-w-7xl px-4 py-14 lg:px-6 lg:py-20'>
+        <div class='grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center'>
+            <div>
+                <h2 class='text-2xl font-bold tracking-tight'>RhyDB in other projects</h2><p
+                    class='mt-3 leading-relaxed text-base-content/70'
+                >
+                    GenSpectrum uses RhyDB for genomic data queries. Loculus uses RhyDB as its query engine, and
+                    Pathoplexus is built with Loculus.
+                </p>
+            </div>
+            <div class='grid gap-3 sm:grid-cols-3'>
+                <a
+                    class='project-link btn h-auto justify-start bg-base-100 px-4 py-4 text-base'
+                    href='https://genspectrum.org/'
+                    target='_blank'
+                    rel='noreferrer'>GenSpectrum <span class='ml-auto text-base-content/40'>↗</span></a
+                >
+                <a
+                    class='project-link btn h-auto justify-start bg-base-100 px-4 py-4 text-base'
+                    href='https://loculus.org/'
+                    target='_blank'
+                    rel='noreferrer'>Loculus <span class='ml-auto text-base-content/40'>↗</span></a
+                >
+                <a
+                    class='project-link btn h-auto justify-start bg-base-100 px-4 py-4 text-base'
+                    href='https://pathoplexus.org/'
+                    target='_blank'
+                    rel='noreferrer'>Pathoplexus <span class='ml-auto text-base-content/40'>↗</span></a
+                >
+            </div>
+        </div>
+    </section>
+</BaseLayout>

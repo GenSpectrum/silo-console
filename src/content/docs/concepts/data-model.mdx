@@ -1,0 +1,50 @@
+---
+title: Data model and queries
+description: Tables, pipelines, schemas, aligned sequences, and reference coordinates.
+lead: RhyDB queries transform tables through a pipeline. Sequence operations use reference coordinates.
+section: Concepts
+order: 2
+---
+
+import CodeBlock from '../../../components/astro/CodeBlock.astro';
+import Note from '../../../components/astro/Note.astro';
+import { withBase } from '../../../lib/paths';
+
+## Tables, rows, and columns
+
+A RhyDB table contains rows with the same schema. A row usually represents one sample or sequence record. Columns contain metadata or sequences and have types such as string, integer, date, boolean, nucleotide sequence, or amino-acid sequence.
+
+Table and column names are configured by each RhyDB instance. Examples in this documentation use the table `default` and columns such as `country`, `date`, `main`, and `S`; another instance can expose a different schema.
+
+## Queries are pipelines
+
+A query starts with a table and chains operations from left to right. Each operation consumes a table and produces another table, so the output of one operation becomes the input of the next.
+
+<CodeBlock>{`default
+  .filter(country = 'Switzerland')
+  .groupBy({count := count()}, {pangoLineage})
+  .orderBy({count.desc()})`}</CodeBlock>
+
+This query starts with every row, keeps rows from Switzerland, counts them by lineage, and orders the resulting groups. The last operation determines the final rows and their order.
+
+Operations such as `filter`, `orderBy`, and `limit` preserve the input columns. Operations such as `project`, `map`, `groupBy`, and mutation aggregations define a new output schema.
+
+## Aligned sequences and reference positions
+
+An aligned sequence has positions corresponding to a configured reference sequence. Queries can test whether a sample differs from the reference at a position or carries a particular symbol there.
+
+- A substitution has a different symbol at a reference position.
+- A deletion is represented by a gap at a reference position.
+- An insertion contains symbols between reference positions and is stored separately from the alignment.
+- Ambiguous symbols express incomplete information and affect exact and relaxed matching.
+
+<Note>
+    Positions in RhyDB's sequence functions are 1-based. A sequence name is always explicit because an instance may
+    contain several genome segments or translated genes.
+</Note>
+
+## Inspecting an instance
+
+The query `default.schema()` returns the field names and types available in the table. The <a href={withBase('/console')}>Console</a> exposes the same schema view after connecting to an instance.
+
+<CodeBlock>default.schema()</CodeBlock>

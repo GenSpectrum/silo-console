@@ -1,8 +1,6 @@
-/// <reference types="vite/client" />
-
 import type { DetailedHTMLProps, HTMLAttributes } from 'react';
 
-declare global {
+declare module 'react' {
     namespace JSX {
         interface IntrinsicElements {
             'nightingale-manager': DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement>;

@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react';
+import { type ChangeEvent, type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { LocalRhyDBClient } from '../lib/localRhyDBClient';
 import { validateRawBundle, type RawBundleValidation } from '../lib/localRhyDBFiles';
 import type { LocalRhyDBEvent, LocalRhyDBProgress } from '../lib/localRhyDBProtocol';
@@ -72,7 +72,7 @@ export default function LocalDataSetup({ onReady }: LocalDataSetupProps) {
         }
     };
 
-    const preprocess = async (event: FormEvent) => {
+    const preprocess = async (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!configFile || running) return;
         const result = await validateRawBundle(configFile, inputFiles);
@@ -99,7 +99,7 @@ export default function LocalDataSetup({ onReady }: LocalDataSetupProps) {
         }
     };
 
-    const loadState = async (event: FormEvent) => {
+    const loadState = async (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!stateFile || running) return;
         const client = new LocalRhyDBClient();

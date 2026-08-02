@@ -9,7 +9,7 @@ import {
     ZipWriter,
     type Entry,
 } from '@zip.js/zip.js';
-import type { LocalRhyDBEvent, LocalRhyDBProgress, LocalRhyDBRequest, LocalRhyDBResponse } from './localRhyDBProtocol';
+import type { LocalRhyDBProgress, LocalRhyDBRequest, LocalRhyDBResponse } from './localRhyDBProtocol';
 import type { QueryResult, QueryRow } from './types';
 import type { RhyDBInfo } from './rhydbInfo';
 

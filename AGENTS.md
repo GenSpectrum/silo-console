@@ -1,18 +1,19 @@
 # Agent Notes
 
-This is a public, fully client-side RhyDB query and learning app built with Vite, React, TypeScript,
-Tailwind CSS, and daisyUI. Keep the setup simple and static-host friendly; do not introduce a backend
-or a heavier framework unless explicitly requested.
+This is a public, statically rendered RhyDB query and learning app built with Astro, React islands,
+TypeScript, Tailwind CSS, and daisyUI. Keep the setup simple and static-host friendly; do not introduce
+a backend or server adapter unless explicitly requested.
 
 ## Commands
 
 ```sh
 npm install
 npm run dev
-npm run typecheck
+npm run check
 npm test
 npm run check-format
 npm run build
+npm run preview
 ```
 
 Run `npm run format` before committing formatting-sensitive changes. The default development and
@@ -20,21 +21,21 @@ preview port is 5001.
 
 ## Architecture
 
-- Routes live in `src/main.tsx` and are rendered through React Router `BrowserRouter`.
-- `scripts/postbuild.mjs` copies `dist/index.html` into real route directories so static hosts can
-  serve deep links without SPA fallback rules. Documentation routes are derived from
-  `src/data/docs.ts`; add other top-level routes to both `src/main.tsx` and `scripts/postbuild.mjs`.
+- Routes live in `src/pages/` and Astro renders them to directory-style static HTML.
+- Static layouts, navigation, and page content use `.astro` files. React is reserved for the
+  client-only Console and exercise query-runner islands.
+- Documentation is a typed MDX content collection under `src/content/docs/`; its frontmatter drives
+  routes, metadata, ordering, and navigation.
 - Exercise routes are generated from `src/data/exercises.ts`; changing an exercise slug changes the
-  generated static route.
-- `VITE_BASE` controls sub-path deployments, and `src/config.ts` derives the router basename from
-  Vite's `BASE_URL`.
-- `VITE_RHYDB_DEFAULT_SERVER` sets the Console's initial server. `VITE_RHYDB_EXERCISE_SERVER` is the
+  generated static route through `getStaticPaths()`.
+- `PUBLIC_BASE_PATH` controls sub-path deployments; use `withBase()` for internal links.
+- `PUBLIC_RHYDB_DEFAULT_SERVER` sets the Console's initial server. `PUBLIC_RHYDB_EXERCISE_SERVER` is the
   separate, non-editable exercise target. Both fall back to the GenSpectrum staging RhyDB.
 
 ## RhyDB Query Behavior
 
 - `rhydb-version.txt` records the RhyDB commit this app is currently optimized against. When updating it, review the language reference, editor highlighting, examples, and exercises against the matching RhyDB `documentation/query_documentation.md`; also update `rhydb-wasm-source.txt` to the matching successful external WASM artifact.
-- Browser-local RhyDB is disabled by default. Enabled builds read `rhydb_wasm.js` and `rhydb_wasm.wasm` from `RHYDB_WASM_ASSET_DIR` (default `.rhydb-wasm/`) and require `VITE_RHYDB_WASM_ENABLED=true` plus cross-origin-isolation response headers.
+- Browser-local RhyDB is disabled by default. Enabled builds read `rhydb_wasm.js` and `rhydb_wasm.wasm` from `RHYDB_WASM_ASSET_DIR` (default `.rhydb-wasm/`) and require `PUBLIC_RHYDB_WASM_ENABLED=true` plus cross-origin-isolation response headers.
 - `src/lib/runQuery.ts` sends plain-text RhyDB queries to `POST <server>/query` with
   `Accept: application/x-ndjson`.
 - `runBounded()` appends `.limit(100)` unless the query already has a limit, and retries without the

@@ -1,0 +1,66 @@
+---
+import { EXERCISE_SERVER } from '../../config';
+import { exercises } from '../../data/exercises';
+import { withBase } from '../../lib/paths';
+import ExercisesLayout from '../../layouts/ExercisesLayout.astro';
+---
+
+<ExercisesLayout
+    title='Exercises'
+    description="Exercises for RhyDB's query language on a fixed SARS-CoV-2 dataset."
+    listActive
+>
+    <div class='exercises-list w-full max-w-5xl'>
+        <h1 class='text-3xl font-bold tracking-tight'>Exercises</h1>
+        <p class='mt-3 max-w-3xl text-base leading-relaxed text-base-content/65'>
+            Write queries against the open SARS-CoV-2 dataset. Results are automatically compared with the reference
+            answer. Each exercise includes an explanation and links to the relevant documentation.
+        </p>
+        <div class='mt-5 alert items-start border-info/25 bg-info/8 text-sm'>
+            <span class='text-info'>●</span>
+            <div>
+                <div class='font-semibold'>Fixed training environment</div>
+                <p class='mt-0.5 text-base-content/65'>
+                    The exercises run against the SARS-CoV-2 dataset preprocessed by <a
+                        class='link-primary'
+                        href='https://docs.nextstrain.org/projects/ncov/en/latest/reference/remote_inputs.html'
+                        target='_blank'
+                        rel='noreferrer'>Nextstrain</a
+                    > using data from <a
+                        class='link-primary'
+                        href='https://www.insdc.org/'
+                        target='_blank'
+                        rel='noreferrer'>INSDC</a
+                    > and <a
+                        class='link-primary'
+                        href='https://www.rki.de/DE/Home/home_node.html'
+                        target='_blank'
+                        rel='noreferrer'>RKI</a
+                    > and hosted by <a
+                        class='link-primary'
+                        href='https://cov-spectrum.org'
+                        target='_blank'
+                        rel='noreferrer'>CoV-Spectrum</a
+                    >.
+                </p>
+                <p class='mt-1 font-mono text-xs break-all text-base-content/50'>{EXERCISE_SERVER}</p>
+            </div>
+        </div>
+        <ul class='list mt-5 overflow-hidden rounded-box border border-base-300 bg-base-100'>
+            {
+                exercises.map((exercise, index) => (
+                    <li class='list-row block border-b border-base-300 p-0 last:border-b-0'>
+                        <a
+                            class='block px-4 py-3 transition-colors hover:bg-base-200 hover:no-underline'
+                            href={withBase(`/exercises/${exercise.slug}`)}
+                        >
+                            <span class='text-xs text-base-content/50'>Exercise {index + 1}</span>
+                            <div class='font-medium text-primary'>{exercise.title}</div>
+                            <div class='mt-0.5 text-xs text-base-content/60'>{exercise.question.split('\n\n')[0]}</div>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </div>
+</ExercisesLayout>

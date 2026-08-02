@@ -46,7 +46,7 @@
 @layer base {
     html,
     body,
-    #root {
+    .site-shell {
         height: 100%;
     }
 
@@ -86,8 +86,8 @@
 
 @utility prose-rhydb {
     & h2 {
-        margin-top: 2.25rem;
-        margin-bottom: 0.75rem;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
         scroll-margin-top: 6rem;
         font-size: 1.25rem;
         font-weight: 650;
@@ -99,12 +99,12 @@
     }
 
     & p {
-        margin-block: 0.8rem;
+        margin-block: 0.65rem;
     }
 
     & ul,
     & ol {
-        margin-block: 0.8rem;
+        margin-block: 0.65rem;
         padding-left: 1.4rem;
     }
 
@@ -241,6 +241,19 @@
     color: color-mix(in srgb, var(--color-neutral-content) 74%, transparent);
     font-size: 0.72rem;
     font-weight: 450;
+}
+
+.site-mobile-menu summary {
+    list-style: none;
+}
+
+.site-mobile-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.site-mobile-menu a[aria-current='page'] {
+    background: rgb(87 214 155 / 10%);
+    color: #8bf0bd;
 }
 
 .site-nav a::before {
@@ -484,11 +497,6 @@
     margin-right: 0.5rem;
     color: var(--color-primary);
     content: '#';
-}
-
-.documentation-page h2 {
-    border-top: 1px dashed var(--color-base-300);
-    padding-top: 1rem;
 }
 
 .documentation-page h2::before {

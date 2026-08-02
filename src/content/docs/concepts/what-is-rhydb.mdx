@@ -1,0 +1,40 @@
+---
+title: What is RhyDB?
+description: What RhyDB does and how it relates to other tools.
+lead: RhyDB is a high-performance analytical database for sequence alignment data.
+section: Concepts
+order: 1
+---
+
+import Note from '../../../components/astro/Note.astro';
+import { withBase } from '../../../lib/paths';
+
+## What RhyDB does
+
+A RhyDB database stores metadata and nucleotide or amino-acid sequences. Applications can filter, aggregate, and retrieve this data through the query API.
+
+Sequence operations include:
+
+- filtering by nucleotides or amino acids at reference positions;
+- finding substitutions, deletions, insertions, and mutation profiles;
+- aggregating mutation and insertion frequencies;
+- searching lineage hierarchies and configured phylogenetic trees.
+
+## Where it fits
+
+RhyDB is a query engine, not a sequence aligner or a data-submission system. Sequence alignment and annotation normally happen before data is loaded. A client sends a query to RhyDB and receives a stream of result rows.
+
+<Note title='RhyDB and LAPIS'>
+    RhyDB can be queried directly. LAPIS is a separate service that can run in front of RhyDB and provides REST
+    endpoints and additional response formats.
+</Note>
+
+## Use in other projects
+
+GenSpectrum uses RhyDB for genomic data queries. Loculus uses RhyDB as its query engine, and Pathoplexus is built with Loculus.
+
+## Where to go next
+
+- Read <a href={withBase('/docs/concepts/data-model')}>Data model and queries</a> to understand query pipelines and aligned sequences.
+- Work through the <a href={withBase('/exercises')}>exercises</a> to learn by writing queries.
+- Use the <a href={withBase('/docs/reference/query-language')}>query-language reference</a> for exact syntax.
