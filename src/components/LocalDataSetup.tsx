@@ -1,4 +1,5 @@
 import { type ChangeEvent, type SyntheticEvent, useEffect, useRef, useState } from 'react';
+import { RHYDB_WASM_VERSION } from '../config';
 import { LocalRhyDBClient } from '../lib/localRhyDBClient';
 import { validateRawBundle, type RawBundleValidation } from '../lib/localRhyDBFiles';
 import type { LocalRhyDBEvent, LocalRhyDBProgress } from '../lib/localRhyDBProtocol';
@@ -220,6 +221,9 @@ export default function LocalDataSetup({ onReady }: LocalDataSetupProps) {
                 <form className='mt-5' onSubmit={loadState}>
                     <label className='form-control w-full'>
                         <span className='label-text mb-2 font-medium'>Processed RhyDB state ZIP</span>
+                        <span className='mb-2 text-xs text-base-content/50'>
+                            Open a state created by RhyDB {RHYDB_WASM_VERSION}.
+                        </span>
                         <input
                             className='file-input w-full'
                             type='file'

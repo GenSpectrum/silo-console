@@ -18,6 +18,8 @@ When browser-local RhyDB is enabled, uploaded files, preprocessing, state loadin
 ```sh
 npm install
 npm run dev          # http://localhost:5001
+npm run wasm:download
+npm run dev:wasm     # http://localhost:5001 with browser-local RhyDB
 npm run check
 npm test
 npm run check-format
@@ -33,12 +35,12 @@ Run `npm run format` before committing formatting-sensitive changes.
 
 Astro reads these variables at build time:
 
-| Variable                       | Default                   | Purpose                                                                                                        |
-| ------------------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `PUBLIC_RHYDB_DEFAULT_SERVER`  | GenSpectrum staging RhyDB | Initial server shown by the Console. Visitors may connect another instance.                                    |
-| `PUBLIC_RHYDB_EXERCISE_SERVER` | GenSpectrum staging RhyDB | Fixed server used by exercises and reference answers. It is not editable in the UI.                            |
-| `PUBLIC_RHYDB_WASM_ENABLED`    | `false`                   | Adds the opt-in browser-local RhyDB target. Requires administrator-supplied WASM assets and isolation headers. |
-| `PUBLIC_BASE_PATH`             | `/`                       | Public base path, such as `/rhydb-console/` for a GitHub Pages project site.                                   |
+| Variable                       | Default                   | Purpose                                                                                            |
+| ------------------------------ | ------------------------- | -------------------------------------------------------------------------------------------------- |
+| `PUBLIC_RHYDB_DEFAULT_SERVER`  | GenSpectrum staging RhyDB | Initial server shown by the Console. Visitors may connect another instance.                        |
+| `PUBLIC_RHYDB_EXERCISE_SERVER` | GenSpectrum staging RhyDB | Fixed server used by exercises and reference answers. It is not editable in the UI.                |
+| `PUBLIC_RHYDB_WASM_ENABLED`    | `false`                   | Adds the opt-in browser-local RhyDB target. Requires downloaded WASM assets and isolation headers. |
+| `PUBLIC_BASE_PATH`             | `/`                       | Public base path, such as `/rhydb-console/` for a GitHub Pages project site.                       |
 
 Example:
 
@@ -48,13 +50,14 @@ PUBLIC_RHYDB_DEFAULT_SERVER=https://rhydb.example.org npm run build
 
 ## Browser-local RhyDB
 
-The pthread-enabled RhyDB WASM files are supplied separately at build time. Their source commit and GitHub Actions artifact are recorded in `rhydb-wasm-source.txt`. Download that artifact and place its two files in `.rhydb-wasm/`, or point `RHYDB_WASM_ASSET_DIR` at another directory:
+The pthread-enabled RhyDB WASM release is pinned in `rhydb-wasm-source.txt`. Download and run it locally with:
 
 ```sh
-gh run download 30373590930 --repo GenSpectrum/LAPIS-SILO --name silo-wasm --dir .rhydb-wasm
-PUBLIC_RHYDB_WASM_ENABLED=true npm run build
-PUBLIC_RHYDB_WASM_ENABLED=true npm run preview -- --host 127.0.0.1 --port 5001
+npm run wasm:download
+npm run dev:wasm
 ```
+
+Set `PUBLIC_RHYDB_WASM_ENABLED=true` for other build or preview commands. `RHYDB_WASM_ASSET_DIR` may point at a directory containing another matching `rhydb_wasm.js` and `rhydb_wasm.wasm` pair.
 
 An enabled build fails when `rhydb_wasm.js` or `rhydb_wasm.wasm` is absent. Disabled builds omit both files and the local-data tab. GitHub Pages uses the disabled default.
 
@@ -65,10 +68,10 @@ Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-To build the container with local RhyDB, place the files in `.rhydb-wasm/` before building:
+The container build downloads the pinned release and enables browser-local RhyDB:
 
 ```sh
-docker build --build-arg PUBLIC_RHYDB_WASM_ENABLED=true -t rhydb-website .
+docker build -t rhydb-website .
 ```
 
 Raw preprocessing accepts one preprocessing YAML and the files it references: one plain NDJSON or `.zst` input, the database configuration, the reference genome, and any configured lineage-definition or phylogenetic-tree files. The browser matches references by filename and reports missing or duplicate selections before loading WASM. Inputs above 500 MB are allowed with a memory warning; whether they fit depends on the resulting RhyDB indexes and the browser's 2 GiB WASM memory ceiling.
@@ -79,7 +82,7 @@ The Console requests NDJSON and infers a few presentation details from the retur
 
 - Uppercase biological strings of at least 40 characters are displayed as sequences.
 - Equally sized aligned sequence values can be opened together in the alignment viewer.
-- Queries without a top-level `.limit(...)` are bounded to 100 rows for interactive use. If RhyDB rejects that limit for an unordered aggregate, the Console retries the original query.
+- Queries without a top-level `.limit(...)` are bounded to 100 rows for interactive use.
 - Long values are collapsed in the result table and can be expanded on demand.
 
 ## RhyDB compatibility

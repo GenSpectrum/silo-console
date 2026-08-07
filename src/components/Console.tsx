@@ -240,7 +240,7 @@ export default function Console() {
             const blob = await connection.target.saveState((event: LocalRhyDBEvent) => {
                 if (event.type === 'progress') setExportProgress(event.value);
             });
-            downloadBlob(blob, 'rhydb-state.zip');
+            downloadBlob(blob, `rhydb-state-${RHYDB_WASM_VERSION}.zip`);
         } catch (error) {
             setExportError(error instanceof Error ? error.message : String(error));
         } finally {

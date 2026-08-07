@@ -12,4 +12,4 @@ export const EXERCISE_SERVER =
 // both separately supplied assets and cross-origin-isolation response headers.
 export const RHYDB_WASM_ENABLED = import.meta.env.PUBLIC_RHYDB_WASM_ENABLED === 'true';
 
-export const RHYDB_WASM_VERSION = /^RhyDB commit:\s*(\S+)/m.exec(rhydbWasmSource)?.[1] ?? 'unknown';
+export const RHYDB_WASM_VERSION = /^RhyDB version:\s*(\S+)/m.exec(rhydbWasmSource)?.[1] ?? 'unknown';

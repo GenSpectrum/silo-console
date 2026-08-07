@@ -36,25 +36,20 @@ describe('runBounded', () => {
         expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
-    it('retries without the appended limit on an ordering error', async () => {
-        const fetchMock = vi
-            .fn()
-            .mockResolvedValueOnce(
-                response({
-                    ok: false,
-                    status: 400,
-                    body: JSON.stringify({ message: 'limit can only be applied if the output has ordering' }),
-                }),
-            )
-            .mockResolvedValueOnce(response({ ok: true, body: '{"count":9}\n' }));
+    it('does not retry a rejected bounded query without its limit', async () => {
+        const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) =>
+            response({
+                ok: false,
+                status: 400,
+                body: JSON.stringify({ message: 'query rejected' }),
+            }),
+        );
         vi.stubGlobal('fetch', fetchMock);
 
         const raw = 'default.groupBy({count:=count()})';
-        const result = await runBounded('http://rhydb', raw);
+        await expect(runBounded('http://rhydb', raw)).rejects.toThrow('HTTP 400');
 
-        expect(result.rows).toEqual([{ count: 9 }]);
-        expect(fetchMock).toHaveBeenCalledTimes(2);
-        expect(fetchMock.mock.calls[0][1].body).toContain('.limit(100)');
-        expect(fetchMock.mock.calls[1][1].body).toBe(raw);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock.mock.calls[0]?.[1]?.body).toContain('.limit(100)');
     });
 });

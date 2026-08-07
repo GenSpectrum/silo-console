@@ -11,8 +11,3 @@ export function withLimit(query: string) {
     if (/\.limit\s*\(/.test(withoutCommentsAndStrings(query))) return query;
     return query + `\n.limit(${DEFAULT_LIMIT})`;
 }
-
-// True for RhyDB's "limit on unordered output" rejection, which runBounded retries without the limit.
-export function isOrderingError(message: unknown) {
-    return typeof message === 'string' && message.includes('can only be applied if the output');
-}

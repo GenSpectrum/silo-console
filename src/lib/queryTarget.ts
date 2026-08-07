@@ -1,6 +1,6 @@
 import { buildCurlCommand } from './curlCommand';
-import { isOrderingError, withLimit } from './queryTransform';
-import { runQuery, type RhyDBQueryError } from './runQuery';
+import { withLimit } from './queryTransform';
+import { runQuery } from './runQuery';
 import type { QueryResult } from './types';
 
 export type QueryTarget = {
@@ -20,13 +20,5 @@ export function remoteQueryTarget(server: string): QueryTarget {
 }
 
 export async function runBoundedTarget(target: QueryTarget, rawQuery: string) {
-    const limited = withLimit(rawQuery);
-    try {
-        return await target.run(limited);
-    } catch (error) {
-        if (limited !== rawQuery && isOrderingError((error as RhyDBQueryError).rhydbMessage)) {
-            return target.run(rawQuery);
-        }
-        throw error;
-    }
+    return target.run(withLimit(rawQuery));
 }

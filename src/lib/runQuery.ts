@@ -1,4 +1,4 @@
-import { isOrderingError, withLimit } from './queryTransform';
+import { withLimit } from './queryTransform';
 import type { QueryResult, QueryRow } from './types';
 
 export type RhyDBQueryError = Error & {
@@ -70,17 +70,7 @@ export async function runQuery(base: string, query: string): Promise<QueryResult
     };
 }
 
-// Runs a query with a default `.limit(100)` appended (see withLimit). If the
-// server rejects the limit because the output is unordered/aggregated, retries
-// once with the original, un-limited query.
+// Runs a query with a default `.limit(100)` appended (see withLimit).
 export async function runBounded(base: string, rawQuery: string) {
-    const limited = withLimit(rawQuery);
-    try {
-        return await runQuery(base, limited);
-    } catch (err) {
-        if (limited !== rawQuery && isOrderingError((err as RhyDBQueryError).rhydbMessage)) {
-            return await runQuery(base, rawQuery);
-        }
-        throw err;
-    }
+    return runQuery(base, withLimit(rawQuery));
 }

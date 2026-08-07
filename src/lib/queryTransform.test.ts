@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isOrderingError, withLimit } from './queryTransform';
+import { withLimit } from './queryTransform';
 
 describe('withLimit', () => {
     it('appends .limit(100) on a new line', () => {
@@ -23,16 +23,5 @@ describe('withLimit', () => {
 
     it('returns empty/whitespace input unchanged', () => {
         expect(withLimit('   ')).toBe('   ');
-    });
-});
-
-describe('isOrderingError', () => {
-    it('matches the RhyDB ordering rejection', () => {
-        expect(isOrderingError('Offset and limit can only be applied if the output ... has ordering')).toBe(true);
-    });
-
-    it('is false for other messages and non-strings', () => {
-        expect(isOrderingError('Bad request')).toBe(false);
-        expect(isOrderingError(undefined)).toBe(false);
     });
 });
