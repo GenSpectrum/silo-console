@@ -346,6 +346,7 @@
 
 .capabilities-section,
 .projects-section,
+.team-section > div,
 .get-started-section > div,
 .contextual-shell,
 .console-page {
@@ -355,7 +356,8 @@
 
 .capabilities-section h2::before,
 .get-started-section h2::before,
-.projects-section h2::before {
+.projects-section h2::before,
+.team-section h2::before {
     margin-right: 0.45rem;
     color: var(--color-primary);
     content: '#';
@@ -412,6 +414,22 @@
     border: 1px solid var(--color-base-content);
     box-shadow: 2px 2px 0 var(--color-base-content);
     font-size: 0.8rem;
+}
+
+.team-member,
+.team-about {
+    box-shadow: 3px 3px 0 var(--color-base-content);
+}
+
+.team-member {
+    transition:
+        box-shadow 150ms ease,
+        translate 150ms ease;
+}
+
+.team-member:hover {
+    box-shadow: 3px 3px 0 var(--color-primary);
+    translate: -1px -1px;
 }
 
 .card-body {

@@ -1,4 +1,10 @@
 ---
+import { Image } from 'astro:assets';
+
+import alexanderTaepperPortrait from '../assets/team/alexander-taepper.jpg';
+import chaoranChenPortrait from '../assets/team/chaoran-chen.jpg';
+import fabianEngelniederhammerPortrait from '../assets/team/fabian-engelniederhammer.jpg';
+import tanjaStadlerPortrait from '../assets/team/tanja-stadler.jpg';
 import { sarsCov2PublicInstance } from '../data/publicInstances';
 import { landingPageQuery, withoutLeadingComments } from '../data/randomQueries';
 import { buildConsoleShareHash } from '../lib/serverUrl';
@@ -7,30 +13,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 const exampleQuery = withoutLeadingComments(landingPageQuery);
 const exampleShareLink = withBase(`/console${buildConsoleShareHash(sarsCov2PublicInstance.server, landingPageQuery)}`);
-const paths = [
-    {
-        path: '/docs',
-        eyebrow: 'Read',
-        title: 'Documentation',
-        description: 'Read about RhyDB data and queries, or look up query-language and HTTP API behavior.',
-        action: 'Browse documentation',
-    },
-    {
-        path: '/exercises',
-        eyebrow: 'Practice',
-        title: 'Exercises',
-        description: 'Write queries against a fixed SARS-CoV-2 dataset and compare the results with reference queries.',
-        action: 'Start an exercise',
-    },
-    {
-        path: '/console',
-        eyebrow: 'Use',
-        title: 'Console',
-        description:
-            'Connect to a public RhyDB instance or query your own data directly from the browser using WebAssembly.',
-        action: 'Open the console',
-    },
-];
 ---
 
 <BaseLayout>
@@ -41,8 +23,9 @@ const paths = [
                     Analytical database for sequences
                 </h1>
                 <p class='mt-6 max-w-2xl text-lg leading-relaxed text-base-content/70 sm:text-xl'>
-                    RhyDB stores genomic sequences and their metadata. Its query language supports filtering,
-                    aggregation, and queries on reference-aligned nucleotide and amino-acid sequences.
+                    RhyDB stores genomic sequences and their metadata in a relational format. Its declarative query
+                    language (similar to SQL) supports fast filtering, aggregation and queries on nucleotide and
+                    amino-acid sequence alignments.
                 </p>
             </div>
             <div class='hero-query self-center overflow-hidden rounded-box border border-base-300 bg-neutral shadow-sm'>
@@ -62,65 +45,95 @@ const paths = [
         <div class='mx-auto max-w-7xl px-4 py-14 lg:px-6 lg:py-16'>
             <div class='text-center'>
                 <h2 class='text-3xl font-bold tracking-tight'>Get started</h2><p class='mt-3 text-base-content/70'>
-                    Read the documentation, work through exercises, or query a RhyDB instance.
+                    Read the documentation and tutorials, work through exercises or query a live RhyDB instance.
                 </p>
             </div>
             <div class='mt-8 grid gap-5 md:grid-cols-3'>
-                {
-                    paths.map((item) => (
-                        <a
-                            class='path-card card border border-base-300 bg-base-100 transition-colors hover:border-primary/50 hover:no-underline'
-                            href={withBase(item.path)}
-                        >
-                            <div class='card-body'>
-                                <p class='text-xs font-semibold tracking-wide text-primary uppercase'>{item.eyebrow}</p>
-                                <h3 class='card-title text-xl'>{item.title}</h3>
-                                <p class='leading-relaxed text-base-content/65'>{item.description}</p>
-                                <div class='mt-3 card-actions'>
-                                    <span class='link font-medium link-primary'>{item.action} →</span>
-                                </div>
-                            </div>
-                        </a>
-                    ))
-                }
+                <a
+                    class='path-card card border border-base-300 bg-base-100 transition-colors hover:border-primary/50 hover:no-underline'
+                    href={withBase('/docs')}
+                >
+                    <div class='card-body'>
+                        <p class='text-xs font-semibold tracking-wide text-primary uppercase'>Read</p>
+                        <h3 class='card-title text-xl'>Documentation</h3>
+                        <p class='leading-relaxed text-base-content/65'>
+                            Read about the core concepts, learn with the interactive tutorials or look up the reference.
+                        </p>
+                        <div class='mt-3 card-actions'>
+                            <span class='link font-medium link-primary'>Browse documentation →</span>
+                        </div>
+                    </div>
+                </a>
+                <a
+                    class='path-card card border border-base-300 bg-base-100 transition-colors hover:border-primary/50 hover:no-underline'
+                    href={withBase('/exercises')}
+                >
+                    <div class='card-body'>
+                        <p class='text-xs font-semibold tracking-wide text-primary uppercase'>Practice</p>
+                        <h3 class='card-title text-xl'>Exercises</h3>
+                        <p class='leading-relaxed text-base-content/65'>
+                            Write queries against a live instance and compare your answers with reference queries.
+                        </p>
+                        <div class='mt-3 card-actions'>
+                            <span class='link font-medium link-primary'>Start an exercise →</span>
+                        </div>
+                    </div>
+                </a>
+                <a
+                    class='path-card card border border-base-300 bg-base-100 transition-colors hover:border-primary/50 hover:no-underline'
+                    href={withBase('/console')}
+                >
+                    <div class='card-body'>
+                        <p class='text-xs font-semibold tracking-wide text-primary uppercase'>Use</p>
+                        <h3 class='card-title text-xl'>Console</h3>
+                        <p class='leading-relaxed text-base-content/65'>
+                            Connect to a public RhyDB instance or query your own data directly from the browser using
+                            WebAssembly.
+                        </p>
+                        <div class='mt-3 card-actions'>
+                            <span class='link font-medium link-primary'>Open the console →</span>
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
     </section>
 
     <section class='capabilities-section mx-auto max-w-7xl px-4 py-14 lg:px-6 lg:py-20'>
         <div class='max-w-3xl'>
-            <h2 class='text-3xl font-bold tracking-tight'>Features</h2><p
-                class='mt-4 leading-relaxed text-base-content/70'
-            >
-                A query is a pipeline of operations on a table. It can filter and aggregate metadata, retrieve records,
-                or inspect changes relative to reference sequences.
+            <h2 class='text-3xl font-bold tracking-tight'>Features</h2>
+            <p class='mt-4 leading-relaxed text-base-content/70'>
+                RhyDB is an open source, relational and analytical database. It specializes on sequence alignments,
+                allowing big datasets to be queried in real time. It further offers various features relevant for
+                genomic epidemiology such as searching lineage systems and trees.
             </p>
         </div>
         <div class='mt-8 grid gap-4 md:grid-cols-3'>
             <div class='capability-card card border border-base-300 bg-base-100 card-sm'>
                 <div class='card-body'>
-                    <h3 class='card-title text-base'>Filter and retrieve</h3><p
-                        class='text-sm leading-relaxed text-base-content/65'
-                    >
-                        Select records by metadata, lineages, and sequence changes.
-                    </p>
-                </div>
-            </div>
-            <div class='capability-card card border border-base-300 bg-base-100 card-sm'>
-                <div class='card-body'>
-                    <h3 class='card-title text-base'>Aggregate</h3><p
-                        class='text-sm leading-relaxed text-base-content/65'
-                    >
-                        Group, count, order, and transform data.
-                    </p>
-                </div>
-            </div>
-            <div class='capability-card card border border-base-300 bg-base-100 card-sm'>
-                <div class='card-body'>
                     <h3 class='card-title text-base'>Query sequences</h3><p
                         class='text-sm leading-relaxed text-base-content/65'
                     >
-                        Query substitutions, deletions, insertions, mutation profiles, and reference positions.
+                        Filter substitutions, deletions and insertions; find co-occurrence patterns, and more.
+                    </p>
+                </div>
+            </div>
+            <div class='capability-card card border border-base-300 bg-base-100 card-sm'>
+                <div class='card-body'>
+                    <h3 class='card-title text-base'>Filter, join and retrieve</h3><p
+                        class='text-sm leading-relaxed text-base-content/65'
+                    >
+                        Retrieve filtered records, download only the fields you need, and join multiple tables.
+                    </p>
+                </div>
+            </div>
+            <div class='capability-card card border border-base-300 bg-base-100 card-sm'>
+                <div class='card-body'>
+                    <h3 class='card-title text-base'>Scalability</h3><p
+                        class='text-sm leading-relaxed text-base-content/65'
+                    >
+                        RhyDB is used for huge datasets including 10 million SARS-CoV-2 whole genome assemblies and 800
+                        million raw reads from wastewater
                     </p>
                 </div>
             </div>
@@ -133,29 +146,151 @@ const paths = [
                 <h2 class='text-2xl font-bold tracking-tight'>RhyDB in other projects</h2><p
                     class='mt-3 leading-relaxed text-base-content/70'
                 >
-                    GenSpectrum uses RhyDB for genomic data queries. Loculus uses RhyDB as its query engine, and
-                    Pathoplexus is built with Loculus.
+                    GenSpectrum uses RhyDB for analytical queries on its dashboards. Loculus uses RhyDB as its general
+                    query engine, and Pathoplexus is built with Loculus.
                 </p>
             </div>
             <div class='grid gap-3 sm:grid-cols-3'>
                 <a
                     class='project-link btn h-auto justify-start bg-base-100 px-4 py-4 text-base'
                     href='https://genspectrum.org/'
-                    target='_blank'
-                    rel='noreferrer'>GenSpectrum <span class='ml-auto text-base-content/40'>↗</span></a
+                    target='_blank'>GenSpectrum <span class='ml-auto text-base-content/40'>↗</span></a
                 >
                 <a
                     class='project-link btn h-auto justify-start bg-base-100 px-4 py-4 text-base'
                     href='https://loculus.org/'
-                    target='_blank'
-                    rel='noreferrer'>Loculus <span class='ml-auto text-base-content/40'>↗</span></a
+                    target='_blank'>Loculus <span class='ml-auto text-base-content/40'>↗</span></a
                 >
                 <a
                     class='project-link btn h-auto justify-start bg-base-100 px-4 py-4 text-base'
                     href='https://pathoplexus.org/'
-                    target='_blank'
-                    rel='noreferrer'>Pathoplexus <span class='ml-auto text-base-content/40'>↗</span></a
+                    target='_blank'>Pathoplexus <span class='ml-auto text-base-content/40'>↗</span></a
                 >
+            </div>
+        </div>
+    </section>
+
+    <section class='team-section border-t-2 border-base-content bg-base-200'>
+        <div class='mx-auto max-w-7xl px-4 py-14 lg:px-6 lg:py-20'>
+            <div class='max-w-3xl'>
+                <h2 class='text-3xl font-bold tracking-tight'>Team</h2>
+            </div>
+            <div class='mt-8 grid grid-cols-2 gap-4 md:grid-cols-4'>
+                <a
+                    class='team-member border border-base-content bg-base-100 hover:no-underline'
+                    href='https://bsse.ethz.ch/cevo/the-group/people/person-detail.ataepper.html'
+                    target='_blank'
+                >
+                    <Image
+                        class='aspect-square w-full object-cover md:mx-auto md:my-4 md:w-[70%]'
+                        src={alexanderTaepperPortrait}
+                        alt='Alexander Taepper'
+                        widths={[240, 360, 480]}
+                        sizes='(min-width: 768px) 25vw, 50vw'
+                    />
+                    <div class='border-t border-base-content p-3'>
+                        <h3 class='font-semibold'>Alexander Taepper</h3>
+                        <p class='mt-1 text-xs leading-relaxed text-base-content/65'>ETH Zurich; SIB</p>
+                    </div>
+                </a>
+                <article class='team-member border border-base-content bg-base-100'>
+                    <Image
+                        class='aspect-square w-full object-cover md:mx-auto md:my-4 md:w-[70%]'
+                        src={fabianEngelniederhammerPortrait}
+                        alt='Fabian Engelniederhammer'
+                        widths={[240, 360, 480]}
+                        sizes='(min-width: 768px) 25vw, 50vw'
+                    />
+                    <div class='border-t border-base-content p-3'>
+                        <h3 class='font-semibold'>Fabian Engelniederhammer</h3>
+                        <p class='mt-1 text-xs leading-relaxed text-base-content/65'>TNG Technology</p>
+                    </div>
+                </article>
+                <a
+                    class='team-member border border-base-content bg-base-100 hover:no-underline'
+                    href='https://bsse.ethz.ch/cevo/the-group/people/person-detail.tstadler.html'
+                    target='_blank'
+                >
+                    <Image
+                        class='aspect-square w-full object-cover md:mx-auto md:my-4 md:w-[70%]'
+                        src={tanjaStadlerPortrait}
+                        alt='Tanja Stadler'
+                        widths={[240, 360, 480]}
+                        sizes='(min-width: 768px) 25vw, 50vw'
+                    />
+                    <div class='border-t border-base-content p-3'>
+                        <h3 class='font-semibold'>Tanja Stadler</h3>
+                        <p class='mt-1 text-xs leading-relaxed text-base-content/65'>ETH Zurich; SIB</p>
+                    </div>
+                </a>
+                <a
+                    class='team-member border border-base-content bg-base-100 hover:no-underline'
+                    href='https://bsse.ethz.ch/cevo/the-group/people/person-detail.cchen.html'
+                    target='_blank'
+                >
+                    <Image
+                        class='aspect-square w-full object-cover md:mx-auto md:my-4 md:w-[70%]'
+                        src={chaoranChenPortrait}
+                        alt='Chaoran Chen'
+                        widths={[240, 360, 480]}
+                        sizes='(min-width: 768px) 25vw, 50vw'
+                    />
+                    <div class='border-t border-base-content p-3'>
+                        <h3 class='font-semibold'>Chaoran Chen</h3>
+                        <p class='mt-1 text-xs leading-relaxed text-base-content/65'>ETH Zurich; SIB</p>
+                    </div>
+                </a>
+            </div>
+
+            <div
+                class='team-about mt-10 grid gap-5 border border-base-content bg-base-100 p-5 md:grid-cols-[1fr_0.55fr]'
+            >
+                <div>
+                    <h3 class='text-lg font-semibold'>Institutions and funding</h3>
+                    <p class='mt-3 text-sm leading-7 text-base-content/75'>
+                        The core team is based at the <a class='link link-primary' href='https://bsse.ethz.ch/cevo'
+                            >cEvo group</a
+                        > at <a class='link link-primary' href='https://ethz.ch/en.html'>ETH Zurich</a> and at the <a
+                            class='link link-primary'
+                            href='https://www.sib.swiss/'>Swiss Institute of Bioinformatics (SIB)</a
+                        >. We received funding from ETH Zurich, the US CDC's <a
+                            class='link link-primary'
+                            href='https://www.cdc.gov/advanced-molecular-detection/index.html'
+                            >Office of Advanced Molecular Detection (OAMD)</a
+                        > and NIH<sup>*</sup> through the <a
+                            class='link link-primary'
+                            href='https://pathogendatanetwork.org/'>Pathogen Data Network</a
+                        >.
+                    </p>
+                </div>
+                <p class='border-l-2 border-primary pl-4 text-xs leading-6 text-base-content/65'>
+                    <sup>*</sup> This resource is supported as a whole or in part by the National Institute Of Allergy And
+                    Infectious Diseases of the National Institutes of Health under grant n°<a
+                        class='link link-primary'
+                        href='https://reporter.nih.gov/search/JHbtQB-XeUu8wvs3vUlFFw/project-details/10913643'
+                        >U24AI183840</a
+                    >, awarded to the SIB Swiss Institute of Bioinformatics. The content is solely the responsibility of
+                    the authors and does not necessarily represent the official views of the National Institutes of
+                    Health.
+                </p>
+            </div>
+
+            <div class='mt-8 max-w-5xl border-t border-base-300 pt-5'>
+                <h3 class='text-base font-semibold'>Contact</h3>
+                <p class='mt-2 text-base leading-7 text-base-content/70'>
+                    Feedback, suggestions, bug reports and active contributions are highly welcome, please create an
+                    issue in our <a class='link link-primary' href='https://github.com/GenSpectrum/LAPIS-SILO'
+                        >Github repository</a
+                    >. For general questions, please contact Alexander Taepper (<a
+                        class='link link-primary'
+                        href='mailto:alexander.taepper@bsse.ethz.ch'>alexander.taepper@bsse.ethz.ch</a
+                    >) and Chaoran Chen (<a class='link link-primary' href='mailto:chaoran.chen@bsse.ethz.ch'
+                        >chaoran.chen@bsse.ethz.ch</a
+                    >). For media requests, please reach out to ETH Zurich Media Relations (<a
+                        class='link link-primary'
+                        href='mailto:mediarelations@hk.ethz.ch'>mediarelations@hk.ethz.ch</a
+                    >).
+                </p>
             </div>
         </div>
     </section>
