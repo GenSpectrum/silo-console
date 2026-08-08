@@ -88,7 +88,6 @@
     & h2 {
         margin-top: 1.5rem;
         margin-bottom: 0.5rem;
-        scroll-margin-top: 6rem;
         font-size: 1.25rem;
         font-weight: 650;
         letter-spacing: -0.015em;
@@ -354,15 +353,6 @@
     padding-bottom: 2.25rem;
 }
 
-.capabilities-section h2::before,
-.get-started-section h2::before,
-.projects-section h2::before,
-.team-section h2::before {
-    margin-right: 0.45rem;
-    color: var(--color-primary);
-    content: '#';
-}
-
 .get-started-section {
     border-top: 2px solid var(--color-base-content);
     border-bottom: 2px solid var(--color-base-content);
@@ -515,12 +505,6 @@
     margin-right: 0.5rem;
     color: var(--color-primary);
     content: '#';
-}
-
-.documentation-page h2::before {
-    margin-right: 0.45rem;
-    color: var(--color-primary);
-    content: '##';
 }
 
 .documentation-page h3::before {

@@ -1,0 +1,29 @@
+---
+interface Props {
+    id?: string;
+    class?: string;
+}
+
+const { id, class: className } = Astro.props;
+---
+
+<h2 id={id} class:list={['section-heading', className]}>
+    {id && <a class='section-heading-link' href={`#${id}`} aria-label='Link to this section' />}
+    <slot />
+</h2>
+
+<style>
+    .section-heading {
+        scroll-margin-top: 4rem;
+    }
+
+    .section-heading-link {
+        color: var(--color-primary);
+        text-decoration: none;
+    }
+
+    .section-heading-link::before {
+        margin-right: 0.45rem;
+        content: '##';
+    }
+</style>

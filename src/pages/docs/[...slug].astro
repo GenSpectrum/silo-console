@@ -1,5 +1,6 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
+import SectionHeading from '../../components/astro/SectionHeading.astro';
 import DocumentationLayout from '../../layouts/DocumentationLayout.astro';
 
 export async function getStaticPaths() {
@@ -22,5 +23,5 @@ const path = `/docs/${entry.id}`;
     lead={entry.data.lead}
     currentPath={path}
 >
-    <Content />
+    <Content components={{ h2: SectionHeading }} />
 </DocumentationLayout>
